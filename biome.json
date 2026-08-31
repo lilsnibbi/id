@@ -9,7 +9,10 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"!**/worker-configuration.d.ts"
+			"!**/worker-configuration.d.ts",
+			"!./bun.lock",
+			"!./biome.json",
+			"!apps/api/drizzle"
 		]
 	},
 	"formatter": {
