@@ -33,7 +33,6 @@ const apiConfig = {
 	name: apiName,
 	main: "src/index.ts",
 	compatibility_date: "2026-08-31",
-
 	vars: {
 		INSTANCE_NAME: instanceName,
 		DASHBOARD_DOMAIN: dashboardDomain,
@@ -42,13 +41,14 @@ const apiConfig = {
 		ORIGIN: origin,
 		LOCALHOST: localhost,
 	},
-
+	secrets: {
+		required: ["ADMIN_BOOTSTRAP_SECRET"],
+	},
 	...(existingApiConfig.d1_databases
 		? {
 				d1_databases: existingApiConfig.d1_databases,
 			}
 		: {}),
-
 	...(existingApiConfig.flagship
 		? {
 				flagship: existingApiConfig.flagship,
@@ -71,13 +71,11 @@ const dashboardConfig = {
 	name: dashboardName,
 	main: "worker.ts",
 	compatibility_date: "2026-08-31",
-
 	assets: {
 		directory: "./dist",
 		binding: "ASSETS",
 		not_found_handling: "single-page-application",
 	},
-
 	...(existingDashboardConfig.flagship
 		? {
 				flagship: existingDashboardConfig.flagship,
