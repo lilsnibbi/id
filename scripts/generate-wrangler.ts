@@ -48,7 +48,7 @@ async function writeIfMissing(path: string, config: object) {
 	const file = Bun.file(path);
 
 	if (await file.exists()) {
-		console.log(`Skipping ${path} — config already exists.`);
+		console.log(`Skipping ${path} - config already exists.`);
 		return;
 	}
 
