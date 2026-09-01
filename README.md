@@ -4,35 +4,25 @@
 
 2. Fill out all values in `.env`.
 
-3. Generate the Wrangler configuration files:
+3. Run the setup script:
 
 ```bash
-bun run generate:config
+bun run setup
 ```
 
-4. From `apps/api`, create the D1 database:
+This will:
 
-```bash
-bunx wrangler d1 create maze-id-api
-```
+* Generate the Wrangler configuration files.
+* Create or configure the D1 database.
+* Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
 
-Replace `maze-id-api` with whatever you want to name your database.
-
-5. Set up the Flagship app:
-
-```bash
-bun run setup:flagship
-```
-
-This creates the Flagship app using your `INSTANCE_NAME` and adds the `FLAGS` binding to the API Wrangler configuration.
-
-6. From the repository root, build the dashboard:
+4. Build the dashboard:
 
 ```bash
 bun run build:dashboard
 ```
 
-7. Deploy! You can do this with:
+5. Deploy:
 
 ```bash
 bun run deploy

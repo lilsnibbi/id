@@ -41,14 +41,9 @@ function required(env: Record<string, string>, name: string) {
 	return value;
 }
 
-const env = parseEnv(
-	await Bun.file(envPath).text(),
-);
+const env = parseEnv(await Bun.file(envPath).text());
 
-const instanceName = required(
-	env,
-	"INSTANCE_NAME",
-);
+const instanceName = required(env, "INSTANCE_NAME");
 
 const appName = `${instanceName}-api-flags`;
 

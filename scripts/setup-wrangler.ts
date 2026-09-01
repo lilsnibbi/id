@@ -55,15 +55,9 @@ async function readJsonc(path: string): Promise<WranglerConfig | null> {
 
 	const contents = await file.text();
 
-	const withoutBlockComments = contents.replace(
-		/\/\*[\s\S]*?\*\//g,
-		"",
-	);
+	const withoutBlockComments = contents.replace(/\/\*[\s\S]*?\*\//g, "");
 
-	const withoutComments = withoutBlockComments.replace(
-		/^\s*\/\/.*$/gm,
-		"",
-	);
+	const withoutComments = withoutBlockComments.replace(/^\s*\/\/.*$/gm, "");
 
 	try {
 		return JSON.parse(withoutComments);
@@ -76,10 +70,7 @@ function formatJson(config: WranglerConfig) {
 	return `${JSON.stringify(config, null, 4)}\n`;
 }
 
-function configsEqual(
-	current: WranglerConfig | null,
-	next: WranglerConfig,
-) {
+function configsEqual(current: WranglerConfig | null, next: WranglerConfig) {
 	return JSON.stringify(current) === JSON.stringify(next);
 }
 
@@ -96,18 +87,11 @@ function showDiff(
 		return;
 	}
 
-	const currentLines = formatJson(current)
-		.trimEnd()
-		.split("\n");
+	const currentLines = formatJson(current).trimEnd().split("\n");
 
-	const nextLines = formatJson(next)
-		.trimEnd()
-		.split("\n");
+	const nextLines = formatJson(next).trimEnd().split("\n");
 
-	const maxLines = Math.max(
-		currentLines.length,
-		nextLines.length,
-	);
+	const maxLines = Math.max(currentLines.length, nextLines.length);
 
 	for (let index = 0; index < maxLines; index++) {
 		const oldLine = currentLines[index];
@@ -134,10 +118,7 @@ async function confirmOverwrite(path: string) {
 	return answer?.trim().toLowerCase() === "y";
 }
 
-async function writeConfig(
-	path: string,
-	config: WranglerConfig,
-) {
+async function writeConfig(path: string, config: WranglerConfig) {
 	const existing = await readJsonc(path);
 
 	if (configsEqual(existing, config)) {
@@ -157,34 +138,20 @@ async function writeConfig(
 	console.log(`Wrote ${path}`);
 }
 
-const env = parseEnv(
-	await Bun.file(envPath).text(),
-);
+const env = parseEnv(await Bun.file(envPath).text());
 
-const instanceName = required(
-	env,
-	"INSTANCE_NAME",
-);
+const instanceName = required(env, "INSTANCE_NAME");
 
-const dashboardDomain = required(
-	env,
-	"DASHBOARD_DOMAIN",
-);
+const dashboardDomain = required(env, "DASHBOARD_DOMAIN");
 
-const localhost = required(
-	env,
-	"LOCALHOST",
-);
+const localhost = required(env, "LOCALHOST");
 
-const existingApiConfig =
-	await readJsonc(apiWranglerPath);
+const existingApiConfig = await readJsonc(apiWranglerPath);
 
-const d1Databases =
-	existingApiConfig?.d1_databases;
+const d1Databases = existingApiConfig?.d1_databases;
 
 const apiConfig: WranglerConfig = {
-	$schema:
-		"./node_modules/wrangler/config-schema.json",
+	$schema: "./node_modules/wrangler/config-schema.json",
 
 	name: `${instanceName}-api`,
 
@@ -206,8 +173,7 @@ const apiConfig: WranglerConfig = {
 };
 
 const dashboardConfig: WranglerConfig = {
-	$schema:
-		"./node_modules/wrangler/config-schema.json",
+	$schema: "./node_modules/wrangler/config-schema.json",
 
 	name: `${instanceName}-dashboard`,
 
@@ -222,15 +188,9 @@ const dashboardConfig: WranglerConfig = {
 	},
 };
 
-await writeConfig(
-	apiWranglerPath,
-	apiConfig,
-);
+await writeConfig(apiWranglerPath, apiConfig);
 
-await writeConfig(
-	dashboardWranglerPath,
-	dashboardConfig,
-);
+await writeConfig(dashboardWranglerPath, dashboardConfig);
 
 console.log("\nConfig generation complete.");
 
