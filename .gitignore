@@ -1,4 +1,5 @@
 node_modules/
 .env
 tsconfig.*tsbuildinfo
-*wrangler.jsonc
+wrangler.jsonc
+generated.json

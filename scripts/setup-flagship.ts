@@ -1,90 +1,107 @@
-const envPath = "./.env";
+import {
+	CONFIG_PATH,
+	loadGenerated,
+	loadWranglerConfig,
+	runWrangler,
+	saveGenerated,
+} from "./shared";
 
-function parseEnv(contents: string) {
-	const values: Record<string, string> = {};
+const generated = await loadGenerated();
 
-	for (const line of contents.split(/\r?\n/)) {
-		const trimmed = line.trim();
-
-		if (!trimmed || trimmed.startsWith("#")) {
-			continue;
-		}
-
-		const match = trimmed.match(/^([\w.-]+)\s*=\s*(.*)$/);
-
-		if (!match) {
-			continue;
-		}
-
-		let [, key, value] = match;
-
-		if (
-			(value.startsWith('"') && value.endsWith('"')) ||
-			(value.startsWith("'") && value.endsWith("'"))
-		) {
-			value = value.slice(1, -1);
-		}
-
-		values[key] = value;
-	}
-
-	return values;
+if (!generated.instanceName) {
+	throw new Error(
+		"Missing instanceName from generated.json. Run setup:config first.",
+	);
 }
 
-function required(env: Record<string, string>, name: string) {
-	const value = env[name];
-
-	if (!value) {
-		throw new Error(`Missing ${name} from ${envPath}`);
-	}
-
-	return value;
-}
-
-const env = parseEnv(await Bun.file(envPath).text());
-
-const instanceName = required(env, "INSTANCE_NAME");
-
-const appName = `${instanceName}-api-flags`;
+const appName = `${generated.instanceName}-api-flags`;
+const flagName = "use-argon-2-id";
 
 console.log(`Creating Flagship app: ${appName}`);
-
 console.log();
 
-const process = Bun.spawn(
-	[
-		"bunx",
-		"wrangler",
-		"flagship",
-		"apps",
-		"create",
-		appName,
-		"--binding",
-		"FLAGS",
-		"--update-config",
-	],
-	{
-		cwd: "./apps/api",
-		stdin: "inherit",
-		stdout: "inherit",
-		stderr: "inherit",
-	},
+const createAppProcess = runWrangler([
+	"flagship",
+	"apps",
+	"create",
+	appName,
+	"--binding",
+	"FLAGS",
+	"--update-config",
+]);
+
+const appExitCode = await createAppProcess.exited;
+
+if (appExitCode !== 0) {
+	throw new Error(
+		`Failed to create Flagship app. Wrangler exited with code ${appExitCode}.`,
+	);
+}
+
+const config = await loadWranglerConfig();
+
+const flagship = config.flagship;
+
+if (!Array.isArray(flagship)) {
+	throw new Error(`No Flagship configuration found in ${CONFIG_PATH}.`);
+}
+
+const binding = flagship.find(
+	(item) =>
+		item &&
+		typeof item === "object" &&
+		"binding" in item &&
+		item.binding === "FLAGS",
 );
 
-const exitCode = await process.exited;
+if (
+	!binding ||
+	typeof binding !== "object" ||
+	!("app_id" in binding) ||
+	typeof binding.app_id !== "string"
+) {
+	throw new Error(`No FLAGS app_id found in ${CONFIG_PATH}.`);
+}
 
-if (exitCode !== 0) {
+const appId = binding.app_id;
+
+await saveGenerated({
+	flagship: {
+		appName,
+		appId,
+	},
+});
+
+console.log();
+console.log(`Creating Flagship flag: ${flagName}`);
+console.log();
+
+const createFlagProcess = runWrangler([
+	"flagship",
+	"flags",
+	"create",
+	appId,
+	flagName,
+	"--variation",
+	"on=true",
+	"--variation",
+	"off=false",
+	"--default",
+	"off",
+]);
+
+const flagExitCode = await createFlagProcess.exited;
+
+if (flagExitCode !== 0) {
 	throw new Error(
-		`Failed to create Flagship app. Wrangler exited with code ${exitCode}.`,
+		`Failed to create Flagship flag. Wrangler exited with code ${flagExitCode}.`,
 	);
 }
 
 console.log();
-
 console.log("Flagship setup complete.");
-
 console.log(`App: ${appName}`);
-
+console.log(`App ID: ${appId}`);
 console.log("Binding: FLAGS");
-
-export {};
+console.log(`Flag: ${flagName}`);
+console.log("Default: off");
