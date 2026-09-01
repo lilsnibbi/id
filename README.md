@@ -16,13 +16,7 @@ This will:
 * Create or configure the D1 database.
 * Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
 
-4. Build the dashboard:
-
-```bash
-bun run build:dashboard
-```
-
-5. Deploy:
+4. Deploy:
 
 ```bash
 bun run deploy
