@@ -6,6 +6,7 @@
 	"scripts": {
 		"format": "bunx biome format --write .",
 		"check": "bunx biome check .",
+		"check:fix": "bunx biome check . --fix",
 		"generate:config": "bun scripts/generate-wrangler.ts",
 		"dev:dashboard": "bun --cwd=apps/dashboard run dev",
 		"dev:api": "bun --cwd=apps/api run dev",

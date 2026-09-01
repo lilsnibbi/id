@@ -12,7 +12,8 @@
 			"!**/worker-configuration.d.ts",
 			"!./bun.lock",
 			"!./biome.json",
-			"!apps/api/drizzle"
+			"!apps/api/drizzle",
+			"!apps/dashboard/dist"
 		]
 	},
 	"formatter": {
