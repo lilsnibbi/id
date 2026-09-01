@@ -1,8 +1,8 @@
 {
-	"compilerOptions": {
-		"types": ["bun"],
-		"strict": true,
-		"module": "ESNext",
-		"moduleResolution": "Bundler"
-	}
+ "compilerOptions": {
+  "types": ["bun"],
+  "strict": true,
+  "module": "ESNext",
+  "moduleResolution": "Bundler"
+ }
 }

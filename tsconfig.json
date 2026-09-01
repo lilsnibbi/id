@@ -1,11 +1,11 @@
 {
-	"files": [],
-	"references": [
-		{
-			"path": "./apps/dashboard/tsconfig.json"
-		},
-		{
-			"path": "./apps/dashboard/tsconfig.worker.json"
-		}
-	]
+ "files": [],
+ "references": [
+  {
+   "path": "./apps/dashboard/tsconfig.json"
+  },
+  {
+   "path": "./apps/dashboard/tsconfig.worker.json"
+  }
+ ]
 }
