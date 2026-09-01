@@ -35,6 +35,7 @@
  "dependencies": {
   "@simplewebauthn/browser": "^13.3.0",
   "@simplewebauthn/server": "^13.3.3",
-  "@simplewebauthn/types": "^12.0.0"
+  "@simplewebauthn/types": "^12.0.0",
+  "wrangler": "^4.128.0"
  }
 }
