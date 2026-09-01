@@ -1,14 +1,23 @@
 import { join } from "node:path";
 
 export const ROOT_DIR = join(import.meta.dir, "..");
+
 export const API_DIR = join(ROOT_DIR, "apps/api");
+
+export const DASHBOARD_DIR = join(ROOT_DIR, "apps/dashboard");
+
 export const ENV_PATH = join(ROOT_DIR, ".env");
-export const CONFIG_PATH = join(API_DIR, "wrangler.jsonc");
+
+export const API_CONFIG_PATH = join(API_DIR, "wrangler.jsonc");
+
+export const DASHBOARD_CONFIG_PATH = join(DASHBOARD_DIR, "wrangler.jsonc");
+
 export const GENERATED_PATH = join(import.meta.dir, "generated.json");
 
 export type GeneratedConfig = {
 	instanceName: string;
 	apiName: string;
+	dashboardName?: string;
 	dashboardDomain: string;
 	database?: {
 		name: string;
@@ -91,8 +100,14 @@ export async function saveGenerated(config: Partial<GeneratedConfig>) {
 	);
 }
 
-export async function loadWranglerConfig() {
-	const contents = await Bun.file(CONFIG_PATH).text();
+export async function loadWranglerConfig(path: string = API_CONFIG_PATH) {
+	const file = Bun.file(path);
+
+	if (!(await file.exists())) {
+		return {};
+	}
+
+	const contents = await file.text();
 
 	const withoutBlockComments = contents.replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -159,7 +174,7 @@ export async function updateD1Binding(
 	databaseName: string,
 	databaseId: string,
 ) {
-	const config = await loadWranglerConfig();
+	const config = await loadWranglerConfig(API_CONFIG_PATH);
 
 	const databases = Array.isArray(config.d1_databases)
 		? config.d1_databases
@@ -188,5 +203,5 @@ export async function updateD1Binding(
 
 	config.d1_databases = databases;
 
-	await Bun.write(CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
+	await Bun.write(API_CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
 }

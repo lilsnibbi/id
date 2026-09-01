@@ -1,8 +1,9 @@
 import {
-	CONFIG_PATH,
+	API_CONFIG_PATH,
 	loadGenerated,
 	loadWranglerConfig,
 	runWrangler,
+	runWranglerAndCheck,
 	saveGenerated,
 } from "./shared";
 
@@ -43,7 +44,7 @@ const config = await loadWranglerConfig();
 const flagship = config.flagship;
 
 if (!Array.isArray(flagship)) {
-	throw new Error(`No Flagship configuration found in ${CONFIG_PATH}.`);
+	throw new Error(`No Flagship configuration found in ${API_CONFIG_PATH}.`);
 }
 
 const binding = flagship.find(
@@ -60,7 +61,7 @@ if (
 	!("app_id" in binding) ||
 	typeof binding.app_id !== "string"
 ) {
-	throw new Error(`No FLAGS app_id found in ${CONFIG_PATH}.`);
+	throw new Error(`No FLAGS app_id found in ${API_CONFIG_PATH}.`);
 }
 
 const appId = binding.app_id;
@@ -98,6 +99,20 @@ if (flagExitCode !== 0) {
 	);
 }
 
+console.log();
+console.log("Flagship setup complete.");
+console.log(`App: ${appName}`);
+console.log(`App ID: ${appId}`);
+console.log("Binding: FLAGS");
+console.log(`Flag: ${flagName}`);
+console.log("Default: off");
+
+console.log();
+console.log("Generating Wrangler types...");
+
+await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");
+
+console.log("Wrangler types generated.");
 console.log();
 console.log("Flagship setup complete.");
 console.log(`App: ${appName}`);
