@@ -6,12 +6,20 @@
 	"scripts": {
 		"format": "bunx biome format --write .",
 		"check": "bunx biome check .",
+		"generate:config": "bun scripts/generate-wrangler.ts",
 		"dev:dashboard": "bun --cwd=apps/dashboard run dev",
 		"dev:api": "bun --cwd=apps/api run dev",
-		"build:dashboard": "bun --cwd=apps/dashboard run build"
+		"build:dashboard": "bun --cwd=apps/dashboard run build",
+		"typecheck": "bunx tsc --build",
+		"typecheck:dashboard": "bunx tsc -p apps/dashboard/tsconfig.json --noEmit",
+		"typecheck:api": "bunx tsc -p apps/api/tsconfig.json --noEmit",
+		"deploy:dashboard": "bun run build:dashboard && bun --cwd=apps/dashboard run deploy",
+		"deploy:api": "bun --cwd=apps/api run deploy",
+		"deploy": "bun run typecheck && bun run deploy:api && bun run deploy:dashboard"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.11",
+		"@types/bun": "^1.4.0",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.5",
 		"stylelint": "^17.14.1",
