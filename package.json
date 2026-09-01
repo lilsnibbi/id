@@ -8,6 +8,7 @@
   "check": "bunx biome check .",
   "check:fix": "bunx biome check . --fix",
   "generate:config": "bun scripts/generate-wrangler.ts",
+  "setup:flagship": "bun scripts/setup-flagship.ts",
   "dev:dashboard": "bun --cwd=apps/dashboard run dev",
   "dev:api": "bun --cwd=apps/api run dev",
   "build:dashboard": "bun --cwd=apps/dashboard run build",

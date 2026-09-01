@@ -3,6 +3,8 @@ const envPath = "./.env";
 const apiWranglerPath = "./apps/api/wrangler.jsonc";
 const dashboardWranglerPath = "./apps/dashboard/wrangler.jsonc";
 
+type WranglerConfig = Record<string, unknown>;
+
 function parseEnv(contents: string) {
 	const values: Record<string, string> = {};
 
@@ -44,42 +46,175 @@ function required(env: Record<string, string>, name: string) {
 	return value;
 }
 
-async function writeIfMissing(path: string, config: object) {
+async function readJsonc(path: string): Promise<WranglerConfig | null> {
 	const file = Bun.file(path);
 
-	if (await file.exists()) {
-		console.log(`Skipping ${path} - config already exists.`);
+	if (!(await file.exists())) {
+		return null;
+	}
+
+	const contents = await file.text();
+
+	const withoutBlockComments = contents.replace(
+		/\/\*[\s\S]*?\*\//g,
+		"",
+	);
+
+	const withoutComments = withoutBlockComments.replace(
+		/^\s*\/\/.*$/gm,
+		"",
+	);
+
+	try {
+		return JSON.parse(withoutComments);
+	} catch {
+		throw new Error(`Unable to parse existing Wrangler config: ${path}`);
+	}
+}
+
+function formatJson(config: WranglerConfig) {
+	return `${JSON.stringify(config, null, 4)}\n`;
+}
+
+function configsEqual(
+	current: WranglerConfig | null,
+	next: WranglerConfig,
+) {
+	return JSON.stringify(current) === JSON.stringify(next);
+}
+
+function showDiff(
+	path: string,
+	current: WranglerConfig | null,
+	next: WranglerConfig,
+) {
+	console.log(`\nChanges for ${path}:\n`);
+
+	if (!current) {
+		console.log("+ New file");
+		console.log(formatJson(next));
 		return;
 	}
 
-	await Bun.write(path, `${JSON.stringify(config, null, 4)}\n`);
+	const currentLines = formatJson(current)
+		.trimEnd()
+		.split("\n");
 
-	console.log(`Generated ${path}`);
+	const nextLines = formatJson(next)
+		.trimEnd()
+		.split("\n");
+
+	const maxLines = Math.max(
+		currentLines.length,
+		nextLines.length,
+	);
+
+	for (let index = 0; index < maxLines; index++) {
+		const oldLine = currentLines[index];
+		const newLine = nextLines[index];
+
+		if (oldLine === newLine) {
+			console.log(`  ${oldLine ?? ""}`);
+			continue;
+		}
+
+		if (oldLine !== undefined) {
+			console.log(`- ${oldLine}`);
+		}
+
+		if (newLine !== undefined) {
+			console.log(`+ ${newLine}`);
+		}
+	}
 }
 
-const env = parseEnv(await Bun.file(envPath).text());
+async function confirmOverwrite(path: string) {
+	const answer = prompt(`\nOverwrite ${path}? [y/N] `);
 
-const instanceName = required(env, "INSTANCE_NAME");
-const dashboardDomain = required(env, "DASHBOARD_DOMAIN");
-const localhost = required(env, "LOCALHOST");
+	return answer?.trim().toLowerCase() === "y";
+}
 
-const apiConfig = {
-	$schema: "./node_modules/wrangler/config-schema.json",
+async function writeConfig(
+	path: string,
+	config: WranglerConfig,
+) {
+	const existing = await readJsonc(path);
+
+	if (configsEqual(existing, config)) {
+		console.log(`Skipping ${path} - no changes.`);
+		return;
+	}
+
+	showDiff(path, existing, config);
+
+	if (existing && !(await confirmOverwrite(path))) {
+		console.log(`Skipping ${path} - overwrite declined.`);
+		return;
+	}
+
+	await Bun.write(path, formatJson(config));
+
+	console.log(`Wrote ${path}`);
+}
+
+const env = parseEnv(
+	await Bun.file(envPath).text(),
+);
+
+const instanceName = required(
+	env,
+	"INSTANCE_NAME",
+);
+
+const dashboardDomain = required(
+	env,
+	"DASHBOARD_DOMAIN",
+);
+
+const localhost = required(
+	env,
+	"LOCALHOST",
+);
+
+const existingApiConfig =
+	await readJsonc(apiWranglerPath);
+
+const d1Databases =
+	existingApiConfig?.d1_databases;
+
+const apiConfig: WranglerConfig = {
+	$schema:
+		"./node_modules/wrangler/config-schema.json",
+
 	name: `${instanceName}-api`,
+
 	main: "src/index.ts",
+
 	compatibility_date: "2026-08-31",
+
 	vars: {
 		INSTANCE_NAME: instanceName,
 		DASHBOARD_DOMAIN: dashboardDomain,
 		LOCALHOST: localhost === "true",
 	},
+
+	...(d1Databases
+		? {
+				d1_databases: d1Databases,
+			}
+		: {}),
 };
 
-const dashboardConfig = {
-	$schema: "./node_modules/wrangler/config-schema.json",
+const dashboardConfig: WranglerConfig = {
+	$schema:
+		"./node_modules/wrangler/config-schema.json",
+
 	name: `${instanceName}-dashboard`,
+
 	main: "worker.ts",
+
 	compatibility_date: "2026-08-31",
+
 	assets: {
 		directory: "./dist",
 		binding: "ASSETS",
@@ -87,7 +222,16 @@ const dashboardConfig = {
 	},
 };
 
-await writeIfMissing(apiWranglerPath, apiConfig);
-await writeIfMissing(dashboardWranglerPath, dashboardConfig);
+await writeConfig(
+	apiWranglerPath,
+	apiConfig,
+);
+
+await writeConfig(
+	dashboardWranglerPath,
+	dashboardConfig,
+);
+
+console.log("\nConfig generation complete.");
 
 export {};
