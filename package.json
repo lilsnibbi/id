@@ -21,9 +21,10 @@
   "typecheck": "bunx tsc --build",
   "typecheck:dashboard": "bunx tsc -p apps/dashboard/tsconfig.json --noEmit",
   "typecheck:api": "bunx tsc -p apps/api/tsconfig.json --noEmit",
+  "deploy:db": "bun --cwd=apps/api run db:migrate",
   "deploy:dashboard": "bun run build:dashboard && bun --cwd=apps/dashboard run deploy",
   "deploy:api": "bun --cwd=apps/api run deploy",
-  "deploy": "bun run typecheck && bun run deploy:api && bun run deploy:dashboard"
+  "deploy": "bun run typecheck && bun run deploy:db && bun run deploy:api && bun run deploy:dashboard"
  },
  "devDependencies": {
   "@biomejs/biome": "^2.5.11",
