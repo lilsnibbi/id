@@ -1,0 +1,6 @@
+[submodule "apps/dashboard"]
+	path = apps/dashboard
+	url = https://git.hzel.org/Hazel/id-dashboard
+[submodule "apps/api"]
+	path = apps/api
+	url = https://git.hzel.org/Hazel/id-api
