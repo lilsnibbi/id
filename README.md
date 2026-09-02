@@ -1,20 +1,14 @@
-# Repository Mirror
-
-The GitHub repository is automatically synchronized from the Forgejo repository and is **read-only**.
-
-Changes are not currently accepted on the GitHub mirror. This may change in the future.
-
 ## Repository Structure
 
-Maze ID uses Git submodules for the API and dashboard applications. These submodules are currently hosted on a Forgejo instance:
+Maze ID uses Git submodules for the API and dashboard applications:
 
-- **API:** `https://git.hzel.org/Hazel/id-api`
-- **Dashboard:** `https://git.hzel.org/Hazel/id-dashboard`
+* **API:** `https://github.com/thehazell/id-api`
+* **Dashboard:** `https://github.com/thehazell/id-dashboard`
 
 If you clone this repository, make sure to initialize the submodules:
 
 ```bash
-git clone --recurse-submodules <repository-url>
+git clone --recurse-submodules https://github.com/thehazell/id.git
 ```
 
 If you have already cloned the repository without `--recurse-submodules`, initialize them with:
@@ -37,11 +31,11 @@ bun run setup
 
 This will:
 
-- Generate the Wrangler configuration files.
-- Create or configure the D1 database.
-- Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
-- Create the `use-argon-2-id` feature flag with a default value of `off`.
-- Generate Wrangler types.
+* Generate the Wrangler configuration files.
+* Create or configure the D1 database.
+* Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
+* Create the `use-argon-2-id` feature flag with a default value of `off`.
+* Generate Wrangler types.
 
 4. Deploy:
 
@@ -75,6 +69,6 @@ Flag changes may take a short time to propagate through Cloudflare.
 
 The current experimental Argon2id configuration uses:
 
-- **Memory:** 64 MiB
-- **Iterations:** 2
-- **Parallelism:** 1
+* **Memory:** 64 MiB
+* **Iterations:** 2
+* **Parallelism:** 1
