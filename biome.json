@@ -13,7 +13,8 @@
    "!./bun.lock",
    "!./biome.json",
    "!apps/api/drizzle",
-   "!apps/dashboard/dist"
+   "!apps/dashboard/dist",
+   "!apps/dashboard/src/routeTree.gen.ts"
   ]
  },
  "formatter": {
