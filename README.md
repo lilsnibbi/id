@@ -1,8 +1,33 @@
-# Setup
+# Repository Mirror
+
+The GitHub repository is automatically synchronized from the Forgejo repository and is **read-only**.
+
+Changes are not currently accepted on the GitHub mirror. This may change in the future.
+
+## Repository Structure
+
+Maze ID uses Git submodules for the API and dashboard applications. These submodules are currently hosted on a Forgejo instance:
+
+- **API:** `https://git.hzel.org/Hazel/id-api`
+- **Dashboard:** `https://git.hzel.org/Hazel/id-dashboard`
+
+If you clone this repository, make sure to initialize the submodules:
+
+```bash
+git clone --recurse-submodules <repository-url>
+```
+
+If you have already cloned the repository without `--recurse-submodules`, initialize them with:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Setup
 
 1. Copy `.env.example` to `.env`.
 
-2. Fill out all values in `.env`.
+2. Fill in all required values in `.env`.
 
 3. Run the setup script:
 
@@ -12,11 +37,11 @@ bun run setup
 
 This will:
 
-* Generate the Wrangler configuration files.
-* Create or configure the D1 database.
-* Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
-* Create the `use-argon-2-id` feature flag with a default value of `off`.
-* Generate Wrangler types.
+- Generate the Wrangler configuration files.
+- Create or configure the D1 database.
+- Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
+- Create the `use-argon-2-id` feature flag with a default value of `off`.
+- Generate Wrangler types.
 
 4. Deploy:
 
@@ -26,26 +51,30 @@ bun run deploy
 
 ## Experimental: Argon2id
 
-Argon2id support is currently experimental.
+Argon2id password hashing is currently experimental.
 
-Maze ID supports Argon2id password hashing behind a Cloudflare Flagship feature flag. The feature is disabled by default and should be considered experimental until it has been sufficiently tested in production-like conditions.
+Maze ID supports Argon2id behind a Cloudflare Flagship feature flag. The feature is disabled by default and should be considered experimental until it has been sufficiently tested in production-like environments.
 
-When the flag is disabled, new passwords use the existing PBKDF2-SHA-256 implementation. When enabled, new passwords use Argon2id.
+When the flag is **disabled**, new passwords are hashed using the existing PBKDF2-SHA-256 implementation. When the flag is **enabled**, new passwords are hashed using Argon2id.
 
-Enable Argon2id:
+### Enable Argon2id
 
 ```bash
 bun run argon:on
 ```
 
-Disable Argon2id:
+### Disable Argon2id
 
 ```bash
 bun run argon:off
 ```
 
-The feature flag only controls how new passwords are hashed. Password verification automatically detects the algorithm used by the stored password hash, so disabling the flag does not invalidate passwords that were previously hashed with Argon2id.
+The feature flag only controls the algorithm used to hash **new passwords**. Password verification automatically detects the algorithm used by the stored password hash, so disabling the flag does not invalidate passwords that were previously hashed with Argon2id.
 
 Flag changes may take a short time to propagate through Cloudflare.
 
-The current experimental Argon2id configuration uses 64 MiB of memory, 2 iterations, and a parallelism value of 1.
+The current experimental Argon2id configuration uses:
+
+- **Memory:** 64 MiB
+- **Iterations:** 2
+- **Parallelism:** 1
