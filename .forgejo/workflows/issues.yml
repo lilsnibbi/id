@@ -17,57 +17,71 @@ jobs:
      run: |
       set -e
 
-      F="https://git.hzel.org/api/v1"
-      G="https://api.github.com"
-      REPO="Hazel/id"
-      GH_REPO="thehazell/id"
+      FORGEJO_API="https://git.hzel.org/api/v1"
+      GITHUB_API="https://api.github.com"
+      FORGEJO_REPO="Hazel/id"
+      GITHUB_REPO="thehazell/id"
 
       curl -fsS \
         -H "Authorization: token $FORGEJO_TOKEN" \
-        "$F/repos/$REPO/issues?state=all&limit=50" |
+        "$FORGEJO_API/repos/$FORGEJO_REPO/issues?state=all&limit=50" |
       jq -c '.[]' |
       while read -r issue; do
-        n=$(jq -r '.number' <<< "$issue")
+
+        number=$(jq -r '.number' <<< "$issue")
         title=$(jq -r '.title' <<< "$issue")
         state=$(jq -r '.state' <<< "$issue")
-        marker="<!-- forgejo-issue:$n -->"
+        marker="<!-- forgejo-issue:$number -->"
 
         body=$(jq -r '.body // ""' <<< "$issue")
+
         body=$(printf '%s\n\n%s\n\n---\n\nCanonical: https://git.hzel.org/%s/issues/%s' \
-          "$body" "$marker" "$REPO" "$n")
+          "$body" "$marker" "$FORGEJO_REPO" "$number")
 
         existing=$(
           curl -fsS \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "$G/repos/$GH_REPO/issues?state=all&per_page=100" |
-          jq -c --arg marker "$marker" \
-            '.[] | select(.pull_request == null and (.body // "" | contains($marker)))' |
-          head -1
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API/repos/$GITHUB_REPO/issues?state=all&per_page=100" |
+          jq -c --arg marker "$marker" '
+            .[]
+            | select(.pull_request == null)
+            | select((.body // "") | contains($marker))
+          ' |
+          head -n 1
         )
 
         data=$(jq -n \
           --arg title "$title" \
           --arg body "$body" \
           --arg state "$state" \
-          '{title:$title,body:$body,state:$state}')
+          '{title: $title, body: $body, state: $state}')
 
         if [ -z "$existing" ]; then
-          echo "Creating GitHub issue #$n"
+          echo "Creating GitHub issue #$number"
 
-          curl -fsS -X POST \
+          curl -fsS \
+            -X POST \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -d "$data" \
-            "$G/repos/$GH_REPO/issues"
+            "$GITHUB_API/repos/$GITHUB_REPO/issues"
         else
-          gh_n=$(jq -r '.number' <<< "$existing")
+          github_number=$(jq -r '.number' <<< "$existing")
 
-          echo "Updating Forgejo #$n -> GitHub #$gh_n"
+          echo "Updating Forgejo #$number -> GitHub #$github_number"
 
-          curl -fsS -X PATCH \
+          curl -fsS \
+            -X PATCH \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -d "$data" \
-            "$G/repos/$GH_REPO/issues/$gh_n"
+            "$GITHUB_API/repos/$GITHUB_REPO/issues/$github_number"
         fi
+
       done
