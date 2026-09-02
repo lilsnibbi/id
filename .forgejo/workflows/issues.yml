@@ -10,78 +10,104 @@ jobs:
   runs-on: docker
 
   steps:
-   - name: Sync issues
+   - name: Sync issues and comments
      env:
       FORGEJO_TOKEN: ${{ forgejo.token }}
       GITHUB_TOKEN: ${{ secrets.ISSUE_SYNC_TOKEN }}
      run: |
       set -e
 
-      FORGEJO_API="https://git.hzel.org/api/v1"
-      GITHUB_API="https://api.github.com"
-      FORGEJO_REPO="Hazel/id"
-      GITHUB_REPO="thehazell/id"
+      F="https://git.hzel.org/api/v1"
+      G="https://api.github.com"
+      FR="Hazel/id"
+      GR="thehazell/id"
+
+      gh() {
+        curl -fsS \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "$@"
+      }
 
       curl -fsS \
         -H "Authorization: token $FORGEJO_TOKEN" \
-        "$FORGEJO_API/repos/$FORGEJO_REPO/issues?state=all&limit=50" |
+        "$F/repos/$FR/issues?state=all&limit=50" |
       jq -c '.[]' |
       while read -r issue; do
-
-        number=$(jq -r '.number' <<< "$issue")
+        n=$(jq -r '.number' <<< "$issue")
         title=$(jq -r '.title' <<< "$issue")
         state=$(jq -r '.state' <<< "$issue")
-        marker="<!-- forgejo-issue:$number -->"
-
         body=$(jq -r '.body // ""' <<< "$issue")
+        marker="<!-- forgejo-issue:$n -->"
 
         body=$(printf '%s\n\n%s\n\n---\n\nCanonical: https://git.hzel.org/%s/issues/%s' \
-          "$body" "$marker" "$FORGEJO_REPO" "$number")
+          "$body" "$marker" "$FR" "$n")
 
         existing=$(
-          curl -fsS \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$GITHUB_API/repos/$GITHUB_REPO/issues?state=all&per_page=100" |
-          jq -c --arg marker "$marker" '
-            .[]
-            | select(.pull_request == null)
-            | select((.body // "") | contains($marker))
-          ' |
-          head -n 1
+          gh "$G/repos/$GR/issues?state=all&per_page=100" |
+          jq -c --arg m "$marker" \
+            '.[] | select(.pull_request == null and (.body // "" | contains($m)))' |
+          head -1
         )
 
         data=$(jq -n \
           --arg title "$title" \
           --arg body "$body" \
           --arg state "$state" \
-          '{title: $title, body: $body, state: $state}')
+          '{title:$title,body:$body,state:$state}')
 
         if [ -z "$existing" ]; then
-          echo "Creating GitHub issue #$number"
+          echo "Creating GitHub issue #$n"
 
-          curl -fsS \
+          existing=$(gh \
             -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -d "$data" \
-            "$GITHUB_API/repos/$GITHUB_REPO/issues"
+            "$G/repos/$GR/issues")
         else
-          github_number=$(jq -r '.number' <<< "$existing")
+          gh_n=$(jq -r '.number' <<< "$existing")
 
-          echo "Updating Forgejo #$number -> GitHub #$github_number"
+          echo "Updating GitHub issue #$gh_n"
 
-          curl -fsS \
+          gh \
             -X PATCH \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -d "$data" \
-            "$GITHUB_API/repos/$GITHUB_REPO/issues/$github_number"
+            "$G/repos/$GR/issues/$gh_n"
         fi
 
+        gh_n=$(jq -r '.number' <<< "$existing")
+
+        curl -fsS \
+          -H "Authorization: token $FORGEJO_TOKEN" \
+          "$F/repos/$FR/issues/$n/comments?limit=50" |
+        jq -c '.[]' |
+        while read -r comment; do
+          cid=$(jq -r '.id' <<< "$comment")
+          author=$(jq -r '.user.login' <<< "$comment")
+          cbody=$(jq -r '.body // ""' <<< "$comment")
+          cmarker="<!-- forgejo-comment:$cid -->"
+
+          comments=$(gh \
+            "$G/repos/$GR/issues/$gh_n/comments?per_page=100")
+
+          if ! jq -e --arg m "$cmarker" \
+            '.[] | select((.body // "") | contains($m))' \
+            <<< "$comments" >/dev/null; then
+
+            echo "Syncing comment #$cid"
+
+            cbody=$(printf '**%s** via Forgejo\n\n%s\n\n%s' \
+              "$author" "$cbody" "$cmarker")
+
+            jq -n --arg body "$cbody" \
+              '{body:$body}' |
+            gh \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -d @- \
+              "$G/repos/$GR/issues/$gh_n/comments"
+          fi
+        done
       done
