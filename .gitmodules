@@ -1,6 +1,0 @@
-[submodule "apps/dashboard"]
-	path = apps/dashboard
-	url = https://github.com/thehazell/id-dashboard
-[submodule "apps/api"]
-	path = apps/api
-	url = https://github.com/thehazell/id-api
