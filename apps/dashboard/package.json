@@ -1,0 +1,27 @@
+{
+ "name": "@id/dashboard",
+ "private": true,
+ "type": "module",
+ "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview",
+  "deploy": "wrangler deploy"
+ },
+ "dependencies": {
+  "@tailwindcss/vite": "^4.3.3",
+  "@tanstack/react-router": "^1.170.32",
+  "@types/node": "^26.4.0",
+  "react": "^19.2.8",
+  "react-dom": "^19.2.8",
+  "react-router": "^8.3.1",
+  "tailwindcss": "^4.3.3"
+ },
+ "devDependencies": {
+  "@cloudflare/workers-types": "^5.20260901.1",
+  "@tanstack/router-plugin": "^1.168.35",
+  "@vitejs/plugin-react": "^6.1.1",
+  "vite": "^8.2.2",
+  "wrangler": "^4.127.1"
+ }
+}

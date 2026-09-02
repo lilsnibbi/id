@@ -1,0 +1,32 @@
+import { Hono } from "hono";
+
+import { dashboardCors } from "./middleware/cors";
+import admin from "./routes/admin";
+import auth from "./routes/auth";
+import security from "./routes/security";
+import passkeys from "./routes/passkeys";
+import oauth from "./routes/oauth";
+import wellKnown from "./routes/well-known";
+import account from "./routes/account";
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use("/api/*", dashboardCors());
+app.use("/oauth/*", dashboardCors());
+
+app.get("/api/health", (c) => {
+	return c.json({
+		status: "ok",
+		database: "connected",
+	});
+});
+
+app.route("/api/auth", auth);
+app.route("/api/security", security);
+app.route("/api/admin", admin);
+app.route("/api/passkeys", passkeys);
+app.route("/api/account", account);
+app.route("/oauth", oauth);
+app.route("/.well-known", wellKnown);
+
+export default app;

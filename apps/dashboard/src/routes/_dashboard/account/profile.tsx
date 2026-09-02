@@ -1,0 +1,345 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "@/components/toast/ToastProvider";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Spinner from "@/components/ui/Spinner";
+import {
+	deleteProfileAvatar,
+	getProfileAvatarUrl,
+	updateProfile,
+	uploadProfileAvatar,
+} from "@/lib/api";
+
+export const Route = createFileRoute("/_dashboard/account/profile")({
+	staticData: {
+		navigation: {
+			label: "Profile",
+			order: 1,
+		},
+	},
+	component: ProfilePage,
+});
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+
+const ALLOWED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function ProfilePage() {
+	const { user, refresh } = useAuth();
+	const toast = useToast();
+
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const [displayName, setDisplayName] = useState("");
+	const [saving, setSaving] = useState(false);
+	const [avatarSaving, setAvatarSaving] = useState(false);
+	const [avatarVersion, setAvatarVersion] = useState<number | null>(null);
+
+	useEffect(() => {
+		setDisplayName(user?.displayName ?? "");
+	}, [user?.displayName]);
+
+	useEffect(() => {
+		if (!user?.profileImageKey) {
+			setAvatarVersion(null);
+			return;
+		}
+
+		setAvatarVersion(Date.now());
+	}, [user?.profileImageKey]);
+
+	const initials = useMemo(() => {
+		if (!user) {
+			return "?";
+		}
+
+		const name = user.displayName?.trim();
+
+		if (name) {
+			return name
+				.split(/\s+/)
+				.slice(0, 2)
+				.map((part) => part[0])
+				.join("")
+				.toUpperCase();
+		}
+
+		return user.email[0]?.toUpperCase() ?? "?";
+	}, [user]);
+
+	if (!user) {
+		return (
+			<div className="flex justify-center py-16">
+				<Spinner size="lg" />
+			</div>
+		);
+	}
+
+	const trimmedName = displayName.trim();
+	const originalName = user.displayName ?? "";
+	const isDirty = trimmedName !== originalName;
+
+	function openFilePicker() {
+		fileInputRef.current?.click();
+	}
+
+	async function handleAvatarChange(
+		event: Parameters<
+			NonNullable<React.ComponentProps<"input">["onChange"]>
+		>[0],
+	) {
+		const file = event.target.files?.[0];
+
+		event.target.value = "";
+
+		if (!file) {
+			return;
+		}
+
+		if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+			toast.error("Profile picture must be a JPEG, PNG, or WebP image.");
+			return;
+		}
+
+		if (file.size > MAX_AVATAR_SIZE) {
+			toast.error("Profile picture must be 5 MB or smaller.");
+			return;
+		}
+
+		setAvatarSaving(true);
+
+		try {
+			await uploadProfileAvatar(file);
+			await refresh();
+			toast.success("Profile picture updated.");
+		} catch (error) {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Unable to update your profile picture.",
+			);
+		} finally {
+			setAvatarSaving(false);
+		}
+	}
+
+	async function handleRemoveAvatar() {
+		setAvatarSaving(true);
+
+		try {
+			await deleteProfileAvatar();
+			await refresh();
+			toast.success("Profile picture removed.");
+		} catch (error) {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Unable to remove your profile picture.",
+			);
+		} finally {
+			setAvatarSaving(false);
+		}
+	}
+
+	async function handleSubmit(
+		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
+	) {
+		event.preventDefault();
+
+		if (!isDirty) {
+			return;
+		}
+
+		setSaving(true);
+
+		try {
+			await updateProfile(trimmedName);
+			await refresh();
+			toast.success("Profile updated.");
+		} catch (error) {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: "Unable to update your profile.",
+			);
+		} finally {
+			setSaving(false);
+		}
+	}
+
+	return (
+		<div className="max-w-3xl">
+			<div className="mb-8">
+				<h1 className="text-2xl font-semibold tracking-tight text-white">
+					Profile
+				</h1>
+				<p className="mt-1 text-sm text-zinc-500">
+					Your personal account information.
+				</p>
+			</div>
+
+			<Card className="overflow-hidden p-0">
+				<div className="flex items-center gap-5 border-b border-zinc-800 px-6 py-6">
+					<div className="relative shrink-0">
+						<div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-lg font-semibold text-zinc-200 ring-1 ring-zinc-700">
+							{user.profileImageKey ? (
+								<img
+									src={`${getProfileAvatarUrl()}?v=${avatarVersion ?? 0}`}
+									alt=""
+									className="h-full w-full object-cover"
+								/>
+							) : (
+								initials
+							)}
+						</div>
+					</div>
+
+					<div className="min-w-0 flex-1">
+						<h2 className="truncate text-lg font-medium text-white">
+							{user.displayName || "Unnamed account"}
+						</h2>
+
+						<p className="mt-1 truncate text-sm text-zinc-500">{user.email}</p>
+
+						<div className="mt-3 flex items-center gap-2">
+							<Button
+								type="button"
+								variant="secondary"
+								onClick={openFilePicker}
+								disabled={avatarSaving}
+							>
+								{avatarSaving ? "Uploading..." : "Change photo"}
+							</Button>
+
+							{user.profileImageKey && (
+								<Button
+									type="button"
+									variant="ghost"
+									onClick={() => void handleRemoveAvatar()}
+									disabled={avatarSaving}
+								>
+									Remove
+								</Button>
+							)}
+						</div>
+
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept="image/jpeg,image/png,image/webp"
+							onChange={handleAvatarChange}
+							className="hidden"
+						/>
+
+						<p className="mt-2 text-xs text-zinc-600">
+							JPEG, PNG, or WebP. Maximum 5 MB.
+						</p>
+					</div>
+				</div>
+
+				<form onSubmit={handleSubmit}>
+					<div className="px-6 py-6">
+						<div className="mb-6">
+							<h2 className="text-sm font-medium text-white">
+								Personal information
+							</h2>
+							<p className="mt-1 text-sm text-zinc-500">
+								Update the information associated with your account.
+							</p>
+						</div>
+
+						<div className="space-y-5">
+							<div>
+								<label
+									htmlFor="display-name"
+									className="mb-2 block text-sm font-medium text-zinc-300"
+								>
+									Display name
+								</label>
+
+								<Input
+									id="display-name"
+									value={displayName}
+									onChange={(event) => setDisplayName(event.target.value)}
+									placeholder="Your name"
+									autoComplete="name"
+									maxLength={100}
+									disabled={saving}
+								/>
+
+								<div className="mt-2 flex justify-between text-xs text-zinc-600">
+									<span>This name will be shown throughout Maze ID.</span>
+									<span>{displayName.length}/100</span>
+								</div>
+							</div>
+
+							<div>
+								<label
+									htmlFor="email"
+									className="mb-2 block text-sm font-medium text-zinc-300"
+								>
+									Email address
+								</label>
+
+								<Input id="email" value={user.email} disabled readOnly />
+
+								<div className="mt-2 flex items-center gap-2 text-xs">
+									<span
+										className={`h-1.5 w-1.5 rounded-full ${
+											user.emailVerifiedAt ? "bg-emerald-400" : "bg-amber-400"
+										}`}
+									/>
+
+									<span className="text-zinc-500">
+										{user.emailVerifiedAt
+											? "Email verified"
+											: "Email not verified"}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div className="border-t border-zinc-800 px-6 py-5">
+						<div className="flex items-center justify-between gap-6">
+							<div>
+								<h2 className="text-sm font-medium text-white">Account</h2>
+
+								<p className="mt-1 text-sm text-zinc-500">
+									Created on{" "}
+									{new Date(user.createdAt).toLocaleDateString(undefined, {
+										month: "long",
+										day: "numeric",
+										year: "numeric",
+									})}
+								</p>
+							</div>
+
+							{user.isAdmin && (
+								<span className="shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
+									Administrator
+								</span>
+							)}
+						</div>
+					</div>
+
+					<div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-950/40 px-6 py-4">
+						<p className="text-xs text-zinc-600">
+							{isDirty
+								? "You have unsaved changes."
+								: "Your profile is up to date."}
+						</p>
+
+						<Button type="submit" disabled={!isDirty || saving}>
+							{saving ? "Saving..." : "Save changes"}
+						</Button>
+					</div>
+				</form>
+			</Card>
+		</div>
+	);
+}
