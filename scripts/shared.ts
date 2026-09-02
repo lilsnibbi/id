@@ -27,6 +27,10 @@ export type GeneratedConfig = {
 		appName: string;
 		appId: string;
 	};
+	r2?: {
+		bucketName: string;
+		binding: string;
+	};
 };
 
 export function parseEnv(contents: string) {
