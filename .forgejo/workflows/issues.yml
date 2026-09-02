@@ -1,75 +1,73 @@
 name: Sync Issues to GitHub
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
-  workflow_dispatch:
+ schedule:
+  - cron: "*/15 * * * *"
+ workflow_dispatch:
 
 jobs:
-  sync:
-    runs-on: docker
+ sync:
+  runs-on: docker
 
-    steps:
-      - name: Sync issues
-        env:
-          FORGEJO_TOKEN: ${{ forgejo.token }}
-          GITHUB_TOKEN: ${{ secrets.ISSUE_SYNC_TOKEN }}
-        run: |
-          set -e
+  steps:
+   - name: Sync issues
+     env:
+      FORGEJO_TOKEN: ${{ forgejo.token }}
+      GITHUB_TOKEN: ${{ secrets.ISSUE_SYNC_TOKEN }}
+     run: |
+      set -e
 
-          F=https://git.hzel.org/api/v1
-          G=https://api.github.com
-          REPO=Hazel/id
-          GH_REPO=thehazell/id
+      F="https://git.hzel.org/api/v1"
+      G="https://api.github.com"
+      REPO="Hazel/id"
+      GH_REPO="thehazell/id"
 
+      curl -fsS \
+        -H "Authorization: token $FORGEJO_TOKEN" \
+        "$F/repos/$REPO/issues?state=all&limit=50" |
+      jq -c '.[]' |
+      while read -r issue; do
+        n=$(jq -r '.number' <<< "$issue")
+        title=$(jq -r '.title' <<< "$issue")
+        state=$(jq -r '.state' <<< "$issue")
+        marker="<!-- forgejo-issue:$n -->"
+
+        body=$(jq -r '.body // ""' <<< "$issue")
+        body=$(printf '%s\n\n%s\n\n---\n\nCanonical: https://git.hzel.org/%s/issues/%s' \
+          "$body" "$marker" "$REPO" "$n")
+
+        existing=$(
           curl -fsS \
-            -H "Authorization: token $FORGEJO_TOKEN" \
-            "$F/repos/$REPO/issues?state=all&limit=50" |
-          jq -c '.[]' |
-          while read -r issue; do
-            n=$(jq -r '.number' <<< "$issue")
-            title=$(jq -r '.title' <<< "$issue")
-            body=$(jq -r '.body // ""' <<< "$issue")
-            state=$(jq -r '.state' <<< "$issue")
-            marker="<!-- forgejo-issue:$n -->"
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "$G/repos/$GH_REPO/issues?state=all&per_page=100" |
+          jq -c --arg marker "$marker" \
+            '.[] | select(.pull_request == null and (.body // "" | contains($marker)))' |
+          head -1
+        )
 
-            body="$body
+        data=$(jq -n \
+          --arg title "$title" \
+          --arg body "$body" \
+          --arg state "$state" \
+          '{title:$title,body:$body,state:$state}')
 
-$marker
+        if [ -z "$existing" ]; then
+          echo "Creating GitHub issue #$n"
 
----
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$data" \
+            "$G/repos/$GH_REPO/issues"
+        else
+          gh_n=$(jq -r '.number' <<< "$existing")
 
-Canonical: https://git.hzel.org/$REPO/issues/$n"
+          echo "Updating Forgejo #$n -> GitHub #$gh_n"
 
-            existing=$(
-              curl -fsS \
-                -H "Authorization: Bearer $GITHUB_TOKEN" \
-                "$G/repos/$GH_REPO/issues?state=all&per_page=100" |
-              jq -c --arg m "$marker" \
-                '.[] | select(.pull_request == null and (.body // "" | contains($m)))' |
-              head -1
-            )
-
-            data=$(jq -n \
-              --arg title "$title" \
-              --arg body "$body" \
-              --arg state "$state" \
-              '{title:$title,body:$body,state:$state}')
-
-            if [ -z "$existing" ]; then
-              echo "Creating #$n"
-              curl -fsS -X POST \
-                -H "Authorization: Bearer $GITHUB_TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "$data" \
-                "$G/repos/$GH_REPO/issues"
-            else
-              gh_n=$(jq -r '.number' <<< "$existing")
-              echo "Updating Forgejo #$n -> GitHub #$gh_n"
-              curl -fsS -X PATCH \
-                -H "Authorization: Bearer $GITHUB_TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "$data" \
-                "$G/repos/$GH_REPO/issues/$gh_n"
-            fi
-          done
+          curl -fsS -X PATCH \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$data" \
+            "$G/repos/$GH_REPO/issues/$gh_n"
+        fi
+      done
