@@ -11,6 +11,7 @@ const env = await loadEnv();
 
 const instanceName = required(env, "INSTANCE_NAME");
 const dashboardDomain = required(env, "DASHBOARD_DOMAIN");
+const oidcIssuer = required(env, "OIDC_ISSUER");
 const localhost = required(env, "LOCALHOST") === "true";
 
 const apiName = `${instanceName}-api`;
@@ -39,10 +40,11 @@ const apiConfig = {
 		RP_NAME: rpName,
 		RP_ID: rpId,
 		ORIGIN: origin,
+		OIDC_ISSUER: oidcIssuer,
 		LOCALHOST: localhost,
 	},
 	secrets: {
-		required: ["ADMIN_BOOTSTRAP_SECRET"],
+		required: ["ADMIN_BOOTSTRAP_SECRET", "OIDC_PRIVATE_KEY"],
 	},
 	...(existingApiConfig.d1_databases
 		? {
