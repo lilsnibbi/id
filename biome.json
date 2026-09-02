@@ -22,7 +22,7 @@
  },
  "overrides": [
   {
-   "includes": ["**/*.json"],
+   "includes": ["**/*.json", "**/*.yml", "**/*.yaml"],
    "formatter": {
     "indentStyle": "space",
     "indentWidth": 1
