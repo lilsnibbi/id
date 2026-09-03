@@ -11,11 +11,11 @@ import { requireAdmin } from "./../../middleware/auth";
 const LIFECYCLE_ACTIONS = ["enable", "disable"] as const;
 type LifecycleAction = (typeof LIFECYCLE_ACTIONS)[number];
 
-const lifecycleRoute = new Hono<{
+const lifecycle = new Hono<{
 	Bindings: Env;
 }>();
 
-lifecycleRoute.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
+lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 	const userId = c.req.param("userId");
 
 	if (!userId) {
@@ -85,6 +85,13 @@ lifecycleRoute.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 		updatedAt: now,
 	});
 
+	await c.env.LIFECYCLE_WORKFLOW.create({
+		id,
+		params: {
+			lifecycleActionId: id,
+		},
+	});
+
 	return c.json(
 		{
 			id,
@@ -99,4 +106,4 @@ lifecycleRoute.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 	);
 });
 
-export default lifecycleRoute;
+export default lifecycle;

@@ -28,10 +28,7 @@ export const lifecycleActions = sqliteTable(
 		error: text("error"),
 	},
 	(table) => [
-		index("lifecycle_actions_pending_idx").on(
-			table.status,
-			table.executeAt,
-		),
+		index("lifecycle_actions_pending_idx").on(table.status, table.executeAt),
 		index("lifecycle_actions_user_idx").on(table.userId),
 	],
 );

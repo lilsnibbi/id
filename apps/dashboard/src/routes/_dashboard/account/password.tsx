@@ -99,9 +99,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="current-password"
 									value={currentPassword}
-									onChange={(event) =>
-										setCurrentPassword(event.target.value)
-									}
+									onChange={(event) => setCurrentPassword(event.target.value)}
 									disabled={saving}
 								/>
 							</div>
@@ -119,9 +117,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="new-password"
 									value={newPassword}
-									onChange={(event) =>
-										setNewPassword(event.target.value)
-									}
+									onChange={(event) => setNewPassword(event.target.value)}
 									disabled={saving}
 								/>
 
@@ -143,9 +139,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="new-password"
 									value={confirmPassword}
-									onChange={(event) =>
-										setConfirmPassword(event.target.value)
-									}
+									onChange={(event) => setConfirmPassword(event.target.value)}
 									disabled={saving}
 								/>
 
