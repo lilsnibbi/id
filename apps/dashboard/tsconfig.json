@@ -4,6 +4,9 @@
   "lib": ["ESNext", "DOM", "DOM.Iterable"],
   "types": ["bun", "vite/client"],
   "jsx": "react-jsx",
+  "composite": true,
+  "declaration": true,
+  "noEmit": false,
   "paths": {
    "@/*": ["./src/*"],
    "@components/*": ["./src/components/*"],
