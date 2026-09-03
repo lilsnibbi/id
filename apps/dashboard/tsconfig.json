@@ -4,13 +4,14 @@
   "lib": ["ESNext", "DOM", "DOM.Iterable"],
   "types": ["bun", "vite/client"],
   "jsx": "react-jsx",
-  "ignoreDeprecations": "6.0",
-  "baseUrl": ".",
+  "composite": true,
+  "declaration": true,
+  "noEmit": false,
   "paths": {
-   "@/*": ["src/*"],
-   "@components/*": ["src/components/*"],
-   "@routes/*": ["src/routes/*"],
-   "@styles/*": ["src/styles/*"]
+   "@/*": ["./src/*"],
+   "@components/*": ["./src/components/*"],
+   "@routes/*": ["./src/routes/*"],
+   "@styles/*": ["./src/styles/*"]
   }
  },
  "include": ["src"]

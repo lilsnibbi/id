@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
+
 import { createDb } from "../../db";
 import { users } from "../../db/schema";
 import { hashPassword, verifyPassword } from "../../lib/password.ts";
@@ -9,10 +10,11 @@ import {
 	getSession,
 	getSessionUser,
 } from "../../lib/session";
+import { requireAuth } from "../../middleware/auth.ts";
 
 const password = new Hono<{ Bindings: Env }>();
 
-password.post("/", async (c) => {
+password.post("/", requireAuth, async (c) => {
 	const token = getCookie(c, "session");
 
 	if (!token) {

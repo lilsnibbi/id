@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { dashboardCors } from "./middleware/cors";
 import admin from "./routes/admin";
 import auth from "./routes/auth";
-import security from "./routes/security";
 import passkeys from "./routes/passkeys";
 import oauth from "./routes/oauth";
 import wellKnown from "./routes/well-known";
@@ -22,7 +21,6 @@ app.get("/api/health", (c) => {
 });
 
 app.route("/api/auth", auth);
-app.route("/api/security", security);
 app.route("/api/admin", admin);
 app.route("/api/passkeys", passkeys);
 app.route("/api/account", account);
