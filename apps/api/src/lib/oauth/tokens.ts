@@ -2,13 +2,29 @@ import { eq } from "drizzle-orm";
 
 import type { Database } from "../../db";
 import { oauthAccessTokens, oauthRefreshTokens } from "../../db/schema";
-
 import { generateToken, hashToken } from "../token";
 
+/**
+ * The lifetime of an OAuth access token in milliseconds.
+ */
 export const ACCESS_TOKEN_DURATION = 1000 * 60 * 60;
 
+/**
+ * The lifetime of an OAuth refresh token in milliseconds.
+ */
 export const REFRESH_TOKEN_DURATION = 1000 * 60 * 60 * 24 * 30;
 
+/**
+ * Creates and stores an OAuth access token.
+ *
+ * Only the hash of the token is stored in the database.
+ *
+ * @param db The database connection.
+ * @param clientId The OAuth client ID.
+ * @param userId The ID of the user the token belongs to.
+ * @param scope The scopes granted to the token.
+ * @returns The plaintext access token and its expiration time.
+ */
 export async function createAccessToken(
 	db: Database,
 	clientId: string,
@@ -35,6 +51,17 @@ export async function createAccessToken(
 	};
 }
 
+/**
+ * Creates and stores an OAuth refresh token.
+ *
+ * Only the hash of the token is stored in the database.
+ *
+ * @param db The database connection.
+ * @param clientId The OAuth client ID.
+ * @param userId The ID of the user the token belongs to.
+ * @param scope The scopes granted to the token.
+ * @returns The plaintext refresh token and its expiration time.
+ */
 export async function createRefreshToken(
 	db: Database,
 	clientId: string,
@@ -61,6 +88,15 @@ export async function createRefreshToken(
 	};
 }
 
+/**
+ * Retrieves an active OAuth access token by its plaintext value.
+ *
+ * Expired and revoked tokens are treated as invalid.
+ *
+ * @param db The database connection.
+ * @param token The plaintext access token.
+ * @returns The access token record, or `null` when it is missing, expired, or revoked.
+ */
 export async function getAccessToken(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
@@ -83,6 +119,15 @@ export async function getAccessToken(db: Database, token: string) {
 	return accessToken;
 }
 
+/**
+ * Retrieves an active OAuth refresh token by its plaintext value.
+ *
+ * Expired and revoked tokens are treated as invalid.
+ *
+ * @param db The database connection.
+ * @param token The plaintext refresh token.
+ * @returns The refresh token record, or `null` when it is missing, expired, or revoked.
+ */
 export async function getRefreshToken(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
@@ -98,13 +143,22 @@ export async function getRefreshToken(db: Database, token: string) {
 		return null;
 	}
 
-	if (refreshToken.expiresAt <= Date.now() || refreshToken.revokedAt !== null) {
+	if (
+		refreshToken.expiresAt <= Date.now() ||
+		refreshToken.revokedAt !== null
+	) {
 		return null;
 	}
 
 	return refreshToken;
 }
 
+/**
+ * Revokes an OAuth access token.
+ *
+ * @param db The database connection.
+ * @param token The plaintext access token to revoke.
+ */
 export async function revokeAccessToken(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
@@ -116,6 +170,12 @@ export async function revokeAccessToken(db: Database, token: string) {
 		.where(eq(oauthAccessTokens.tokenHash, tokenHash));
 }
 
+/**
+ * Revokes an OAuth refresh token.
+ *
+ * @param db The database connection.
+ * @param token The plaintext refresh token to revoke.
+ */
 export async function revokeRefreshToken(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 

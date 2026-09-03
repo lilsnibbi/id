@@ -1,38 +1,95 @@
 import { join } from "node:path";
 
+/**
+ * Resolves to the root of the repository.
+ *
+ * @returns The absolute path of the root of the repository.
+ */
 export const ROOT_DIR = join(import.meta.dir, "..");
 
+/**
+ * Resolves to the API directory.
+ *
+ * @returns The absolute path of the apps/api directory.
+ */
 export const API_DIR = join(ROOT_DIR, "apps/api");
 
+/**
+ * Resolves to the dashboard directory.
+ *
+ * @returns The absolute path of the apps/dashboard directory.
+ */
 export const DASHBOARD_DIR = join(ROOT_DIR, "apps/dashboard");
 
+/**
+ * Resolves to the root environment file.
+ *
+ * @returns The absolute path of the .env file.
+ */
 export const ENV_PATH = join(ROOT_DIR, ".env");
 
+/**
+ * Resolves to the API Wrangler configuration.
+ *
+ * @returns The absolute path of the apps/api/wrangler.jsonc file.
+ */
 export const API_CONFIG_PATH = join(API_DIR, "wrangler.jsonc");
 
+/**
+ * Resolves to the dashboard Wrangler configuration.
+ *
+ * @returns The absolute path of the apps/dashboard/wrangler.jsonc file.
+ */
 export const DASHBOARD_CONFIG_PATH = join(DASHBOARD_DIR, "wrangler.jsonc");
 
+/**
+ * Resolves to the generated configuration file.
+ *
+ * @returns The absolute path of the generated.json file.
+ */
 export const GENERATED_PATH = join(import.meta.dir, "generated.json");
 
+/**
+ * Configuration generated for the current deployment.
+ */
 export type GeneratedConfig = {
+	/** Unique name of the Maze ID instance. */
 	instanceName: string;
+
+	/** Name of the API Worker. */
 	apiName: string;
+
+	/** Name of the dashboard Worker, when configured. */
 	dashboardName?: string;
+
+	/** Public domain of the dashboard. */
 	dashboardDomain: string;
+
+	/** D1 database configuration, when provisioned. */
 	database?: {
 		name: string;
 		id: string;
 	};
+
+	/** Cloudflare Flagship application configuration, when configured. */
 	flagship?: {
 		appName: string;
 		appId: string;
 	};
+
+	/** R2 profile bucket configuration, when provisioned. */
 	r2?: {
 		bucketName: string;
 		binding: string;
 	};
 };
 
+/**
+ * Parses environment variables from dotenv-style file contents.
+ *
+ * @param contents The contents of the environment file.
+ * @returns A record containing the parsed environment variables.
+ */
 export function parseEnv(contents: string) {
 	const values: Record<string, string> = {};
 
@@ -64,6 +121,14 @@ export function parseEnv(contents: string) {
 	return values;
 }
 
+/**
+ * Returns a required environment variable.
+ *
+ * @param env The parsed environment variables.
+ * @param name The name of the required variable.
+ * @returns The value of the environment variable.
+ * @throws If the environment variable is missing or empty.
+ */
 export function required(env: Record<string, string>, name: string) {
 	const value = env[name];
 
@@ -74,10 +139,20 @@ export function required(env: Record<string, string>, name: string) {
 	return value;
 }
 
+/**
+ * Loads and parses the root environment file.
+ *
+ * @returns The parsed environment variables.
+ */
 export async function loadEnv() {
 	return parseEnv(await Bun.file(ENV_PATH).text());
 }
 
+/**
+ * Loads the generated deployment configuration.
+ *
+ * @returns The generated configuration, or an empty object if the file does not exist.
+ */
 export async function loadGenerated() {
 	const file = Bun.file(GENERATED_PATH);
 
@@ -88,6 +163,11 @@ export async function loadGenerated() {
 	return JSON.parse(await file.text()) as Partial<GeneratedConfig>;
 }
 
+/**
+ * Saves generated deployment configuration to disk.
+ *
+ * @param config The generated configuration values to save.
+ */
 export async function saveGenerated(config: Partial<GeneratedConfig>) {
 	const existing = await loadGenerated();
 
@@ -104,6 +184,12 @@ export async function saveGenerated(config: Partial<GeneratedConfig>) {
 	);
 }
 
+/**
+ * Loads and parses a Wrangler configuration file.
+ *
+ * @param path The absolute path to the Wrangler configuration file.
+ * @returns The parsed Wrangler configuration, or an empty object if the file does not exist.
+ */
 export async function loadWranglerConfig(path: string = API_CONFIG_PATH) {
 	const file = Bun.file(path);
 
@@ -114,12 +200,17 @@ export async function loadWranglerConfig(path: string = API_CONFIG_PATH) {
 	const contents = await file.text();
 
 	const withoutBlockComments = contents.replace(/\/\*[\s\S]*?\*\//g, "");
-
 	const withoutComments = withoutBlockComments.replace(/^\s*\/\/.*$/gm, "");
 
 	return JSON.parse(withoutComments) as Record<string, unknown>;
 }
 
+/**
+ * Runs a Wrangler command from the API directory.
+ *
+ * @param args The arguments to pass to Wrangler.
+ * @returns The spawned Wrangler process.
+ */
 export function runWrangler(args: string[]) {
 	return Bun.spawn(["bunx", "wrangler", ...args], {
 		cwd: API_DIR,
@@ -129,6 +220,13 @@ export function runWrangler(args: string[]) {
 	});
 }
 
+/**
+ * Runs a Wrangler command and throws if it exits with a non-zero status.
+ *
+ * @param args The arguments to pass to Wrangler.
+ * @param errorMessage The error message to use when Wrangler fails.
+ * @throws If Wrangler exits with a non-zero status.
+ */
 export async function runWranglerAndCheck(
 	args: string[],
 	errorMessage: string,
@@ -137,7 +235,9 @@ export async function runWranglerAndCheck(
 	const exitCode = await process.exited;
 
 	if (exitCode !== 0) {
-		throw new Error(`${errorMessage} Wrangler exited with code ${exitCode}.`);
+		throw new Error(
+			`${errorMessage} Wrangler exited with code ${exitCode}.`,
+		);
 	}
 }
 
@@ -150,6 +250,12 @@ export type D1Database = {
 	uuid: string;
 };
 
+/**
+ * Lists the D1 databases available to the current Cloudflare account.
+ *
+ * @returns The list of D1 databases.
+ * @throws If Wrangler exits with a non-zero status or its output cannot be parsed.
+ */
 export async function listD1Databases(): Promise<D1Database[]> {
 	const process = Bun.spawn(["bunx", "wrangler", "d1", "list", "--json"], {
 		cwd: API_DIR,
@@ -174,6 +280,12 @@ export async function listD1Databases(): Promise<D1Database[]> {
 	}
 }
 
+/**
+ * Updates the API Wrangler configuration with the D1 database binding.
+ *
+ * @param databaseName The name of the D1 database.
+ * @param databaseId The ID of the D1 database.
+ */
 export async function updateD1Binding(
 	databaseName: string,
 	databaseId: string,
@@ -214,6 +326,12 @@ export type R2Bucket = {
 	name: string;
 };
 
+/**
+ * Lists the R2 buckets available to the current Cloudflare account.
+ *
+ * @returns The list of R2 buckets.
+ * @throws If Wrangler exits with a non-zero status.
+ */
 export async function listR2Buckets(): Promise<R2Bucket[]> {
 	const process = Bun.spawn(["bunx", "wrangler", "r2", "bucket", "list"], {
 		cwd: API_DIR,
@@ -237,6 +355,12 @@ export async function listR2Buckets(): Promise<R2Bucket[]> {
 	});
 }
 
+/**
+ * Updates the API Wrangler configuration with an R2 bucket binding.
+ *
+ * @param bucketName The name of the R2 bucket.
+ * @param bindingName The name of the Worker binding.
+ */
 export async function updateR2Binding(bucketName: string, bindingName: string) {
 	const config = await loadWranglerConfig(API_CONFIG_PATH);
 
@@ -274,6 +398,12 @@ export type FlagshipApp = {
 	updated_by: string;
 };
 
+/**
+ * Lists the Flagship applications available to the current Cloudflare account.
+ *
+ * @returns The list of Flagship applications.
+ * @throws If Wrangler exits with a non-zero status or its output cannot be parsed.
+ */
 export async function listFlagshipApps(): Promise<FlagshipApp[]> {
 	const process = Bun.spawn(
 		["bunx", "wrangler", "flagship", "apps", "list", "--json"],
@@ -300,6 +430,9 @@ export async function listFlagshipApps(): Promise<FlagshipApp[]> {
 	}
 }
 
+/**
+ * Represents a Flagship feature flag.
+ */
 export type FlagshipFlag = {
 	key: string;
 	type: string;
@@ -312,11 +445,27 @@ export type FlagshipFlag = {
 	updated_by: string;
 };
 
+/**
+ * Lists all feature flags for a Flagship application.
+ *
+ * @param appId The ID of the Flagship application.
+ * @returns The list of Flagship feature flags.
+ * @throws If Wrangler exits with a non-zero status or its output cannot be parsed.
+ */
 export async function listFlagshipFlags(
 	appId: string,
 ): Promise<FlagshipFlag[]> {
 	const process = Bun.spawn(
-		["bunx", "wrangler", "flagship", "flags", "list", appId, "--all", "--json"],
+		[
+			"bunx",
+			"wrangler",
+			"flagship",
+			"flags",
+			"list",
+			appId,
+			"--all",
+			"--json",
+		],
 		{
 			cwd: API_DIR,
 			stdout: "pipe",

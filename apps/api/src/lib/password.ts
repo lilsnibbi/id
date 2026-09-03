@@ -12,17 +12,12 @@ setWASMModules({
 });
 
 const ITERATIONS = 100_000;
-
 const KEY_LENGTH = 256;
-
 const SALT_LENGTH = 16;
 
 const ARGON2_MEMORY_SIZE = 64 * 1024;
-
 const ARGON2_ITERATIONS = 2;
-
 const ARGON2_PARALLELISM = 1;
-
 const ARGON2_HASH_LENGTH = 32;
 
 const encoder = new TextEncoder();
@@ -75,6 +70,12 @@ async function derivePasswordHash(
 	return new Uint8Array(bits);
 }
 
+/**
+ * Hashes a password using Argon2id with a randomly generated salt.
+ *
+ * @param password The password to hash.
+ * @returns The encoded Argon2id password hash.
+ */
 async function hashPasswordArgon2id(password: string): Promise<string> {
 	const salt = new Uint8Array(SALT_LENGTH);
 
@@ -91,6 +92,13 @@ async function hashPasswordArgon2id(password: string): Promise<string> {
 	});
 }
 
+/**
+ * Verifies a password against an Argon2id password hash.
+ *
+ * @param password The password to verify.
+ * @param storedHash The stored Argon2id password hash.
+ * @returns `true` when the password matches; otherwise, `false`.
+ */
 async function verifyPasswordArgon2id(
 	password: string,
 	storedHash: string,
@@ -105,6 +113,12 @@ async function verifyPasswordArgon2id(
 	}
 }
 
+/**
+ * Hashes a password using PBKDF2-SHA-256.
+ *
+ * @param password The password to hash.
+ * @returns The encoded PBKDF2 password hash.
+ */
 async function hashPasswordPbkdf2(password: string): Promise<string> {
 	const salt = new Uint8Array(SALT_LENGTH);
 
@@ -112,11 +126,22 @@ async function hashPasswordPbkdf2(password: string): Promise<string> {
 
 	const hash = await derivePasswordHash(password, salt, ITERATIONS);
 
-	return ["pbkdf2", "sha256", ITERATIONS, toBase64(salt), toBase64(hash)].join(
-		"$",
-	);
+	return [
+		"pbkdf2",
+		"sha256",
+		ITERATIONS,
+		toBase64(salt),
+		toBase64(hash),
+	].join("$");
 }
 
+/**
+ * Verifies a password against the PBKDF2-SHA-256 format.
+ *
+ * @param password The password to verify.
+ * @param storedHash The stored PBKDF2 password hash.
+ * @returns `true` when the password matches; otherwise, `false`.
+ */
 async function verifyPasswordPbkdf2(
 	password: string,
 	storedHash: string,
@@ -143,7 +168,6 @@ async function verifyPasswordPbkdf2(
 	try {
 		const salt = fromBase64(saltString);
 		const expectedHash = fromBase64(hashString);
-
 		const actualHash = await derivePasswordHash(password, salt, iterations);
 
 		if (actualHash.length !== expectedHash.length) {
@@ -156,6 +180,14 @@ async function verifyPasswordPbkdf2(
 	}
 }
 
+/**
+ * Hashes a password using PBKDF2-SHA-256 by default, or experimental Argon2id
+ * when explicitly enabled.
+ *
+ * @param password The password to hash.
+ * @param useArgon2id Whether to use the experimental Argon2id implementation.
+ * @returns The encoded password hash.
+ */
 export async function hashPassword(
 	password: string,
 	useArgon2id: boolean,
@@ -167,6 +199,13 @@ export async function hashPassword(
 	return await hashPasswordPbkdf2(password);
 }
 
+/**
+ * Verifies a password against a supported password hash format.
+ *
+ * @param password The password to verify.
+ * @param storedHash The stored password hash.
+ * @returns `true` when the password matches; otherwise, `false`.
+ */
 export async function verifyPassword(
 	password: string,
 	storedHash: string,

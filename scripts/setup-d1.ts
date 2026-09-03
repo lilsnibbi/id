@@ -1,3 +1,6 @@
+/**
+ * Provisions the API D1 database and configures its Worker binding.
+ */
 import {
 	listD1Databases,
 	loadGenerated,

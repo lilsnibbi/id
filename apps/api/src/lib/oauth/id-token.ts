@@ -1,5 +1,4 @@
 import { getKeyId, importPrivateKey, sign } from "./keys";
-
 import { base64UrlEncode } from "../base64";
 
 const encoder = new TextEncoder();
@@ -17,6 +16,15 @@ function encodeJson(value: unknown) {
 	return base64UrlEncode(encoder.encode(JSON.stringify(value)));
 }
 
+/**
+ * Creates a signed OIDC ID token.
+ *
+ * The token is signed using ES256 and includes the issuer, user, client,
+ * issued-at, and expiration claims. A nonce is included when provided.
+ *
+ * @param input The ID token configuration and claims.
+ * @returns The signed JWT.
+ */
 export async function createIdToken(input: CreateIdTokenInput) {
 	const now = Math.floor(Date.now() / 1000);
 

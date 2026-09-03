@@ -1,13 +1,16 @@
 import { and, eq, gt, ne } from "drizzle-orm";
+
 import type { Database } from "../db";
 import { sessions, users } from "../db/schema";
 import { generateToken, hashToken } from "./token";
 import { parseUserAgent } from "./userAgent";
 
 const SESSION_DURATION = 1000 * 60 * 60 * 24 * 30;
-
 const NON_PERSISTENT_SESSION_DURATION = 1000 * 60 * 60;
 
+/**
+ * Metadata associated with a user session.
+ */
 export interface SessionMetadata {
 	ipAddress?: string;
 	country?: string;
@@ -16,6 +19,15 @@ export interface SessionMetadata {
 	userAgent?: string;
 }
 
+/**
+ * Creates a new authenticated session for a user.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user creating the session.
+ * @param metadata Optional metadata to associate with the session.
+ * @param rememberMe Whether the session should use the persistent duration.
+ * @returns The session token, expiration timestamp, and persistence setting.
+ */
 export async function createSession(
 	db: Database,
 	userId: string,
@@ -57,6 +69,15 @@ export async function createSession(
 	};
 }
 
+/**
+ * Retrieves a session by its plaintext token.
+ *
+ * Expired sessions are deleted before returning.
+ *
+ * @param db The database connection.
+ * @param token The plaintext session token.
+ * @returns The session, or `null` if it does not exist or has expired.
+ */
 export async function getSession(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
@@ -81,6 +102,15 @@ export async function getSession(db: Database, token: string) {
 	return session;
 }
 
+/**
+ * Retrieves the user associated with a session token.
+ *
+ * Expired sessions are deleted before returning.
+ *
+ * @param db The database connection.
+ * @param token The plaintext session token.
+ * @returns The authenticated user, or `null` if the session is invalid or expired.
+ */
 export async function getSessionUser(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
@@ -109,6 +139,13 @@ export async function getSessionUser(db: Database, token: string) {
 	return record.user;
 }
 
+/**
+ * Retrieves the authenticated administrator associated with a session token.
+ *
+ * @param db The database connection.
+ * @param token The plaintext session token.
+ * @returns The administrator user, or `null` if the session is invalid or the user is not an administrator.
+ */
 export async function getAdminUser(db: Database, token: string) {
 	const user = await getSessionUser(db, token);
 
@@ -119,6 +156,13 @@ export async function getAdminUser(db: Database, token: string) {
 	return user;
 }
 
+/**
+ * Retrieves all active sessions belonging to a user.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user.
+ * @returns The user's non-expired sessions.
+ */
 export async function getUserSessions(db: Database, userId: string) {
 	return await db
 		.select({
@@ -134,10 +178,21 @@ export async function getUserSessions(db: Database, userId: string) {
 		})
 		.from(sessions)
 		.where(
-			and(eq(sessions.userId, userId), gt(sessions.expiresAt, Date.now())),
+			and(
+				eq(sessions.userId, userId),
+				gt(sessions.expiresAt, Date.now()),
+			),
 		);
 }
 
+/**
+ * Retrieves a specific session belonging to a user.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user.
+ * @param sessionId The ID of the session to retrieve.
+ * @returns The session, or `null` if it does not belong to the user or does not exist.
+ */
 export async function getUserSession(
 	db: Database,
 	userId: string,
@@ -155,6 +210,12 @@ export async function getUserSession(
 	return result[0] ?? null;
 }
 
+/**
+ * Updates the last-used timestamp for a session.
+ *
+ * @param db The database connection.
+ * @param sessionId The ID of the session to update.
+ */
 export async function touchSession(db: Database, sessionId: string) {
 	await db
 		.update(sessions)
@@ -164,12 +225,25 @@ export async function touchSession(db: Database, sessionId: string) {
 		.where(eq(sessions.id, sessionId));
 }
 
+/**
+ * Deletes a session identified by its plaintext token.
+ *
+ * @param db The database connection.
+ * @param token The plaintext session token.
+ */
 export async function deleteSession(db: Database, token: string) {
 	const tokenHash = await hashToken(token);
 
 	await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
 }
 
+/**
+ * Deletes all sessions for a user except the current session.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user whose sessions should be deleted.
+ * @param currentSessionId The ID of the session to preserve.
+ */
 export async function deleteOtherSessions(
 	db: Database,
 	userId: string,
@@ -177,9 +251,17 @@ export async function deleteOtherSessions(
 ) {
 	await db
 		.delete(sessions)
-		.where(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)));
+		.where(
+			and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)),
+		);
 }
 
+/**
+ * Deletes all sessions belonging to a user.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user whose sessions should be deleted.
+ */
 export async function deleteAllSessions(db: Database, userId: string) {
 	await db.delete(sessions).where(eq(sessions.userId, userId));
 }
