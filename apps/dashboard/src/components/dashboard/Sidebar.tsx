@@ -42,7 +42,8 @@ export default function Sidebar() {
 									className: "bg-zinc-800 text-white",
 								}}
 								inactiveProps={{
-									className: "text-zinc-400 hover:bg-zinc-900 hover:text-white",
+									className:
+										"text-zinc-400 hover:bg-zinc-900 hover:text-white",
 								}}
 								className="block rounded-md px-3 py-2 text-sm font-medium"
 							>
@@ -88,7 +89,8 @@ export default function Sidebar() {
 												exact: true,
 											}}
 											activeProps={{
-												className: "bg-zinc-800 text-white",
+												className:
+													"bg-zinc-800 text-white",
 											}}
 											inactiveProps={{
 												className:
@@ -105,6 +107,11 @@ export default function Sidebar() {
 					);
 				})}
 			</nav>
+			<div className="mt-auto border-t border-zinc-800 px-6 py-4">
+				<div className="text-xs text-zinc-600">
+					Build {__APP_VERSION__}
+				</div>
+			</div>
 		</aside>
 	);
 }
