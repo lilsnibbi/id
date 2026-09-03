@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_dashboard/admin/clients")({
 		navigation: {
 			label: "Clients",
 			order: 5,
-			adminOnly: true,
+			adminOnly: false,
 		},
 	},
 	component: ClientsPage,

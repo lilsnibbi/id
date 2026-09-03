@@ -5,7 +5,7 @@ export const Route = createFileRoute("/_dashboard/admin/")({
 		navigation: {
 			label: "Overview",
 			order: 1,
-			adminOnly: true,
+			adminOnly: false,
 		},
 	},
 	component: AdminOverviewPage,

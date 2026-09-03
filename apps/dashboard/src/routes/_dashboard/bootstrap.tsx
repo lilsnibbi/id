@@ -9,6 +9,7 @@ export const Route = createFileRoute("/_dashboard/bootstrap")({
 		navigation: {
 			label: "Bootstrap",
 			order: 30,
+			adminOnly: true,
 		},
 	},
 	component: BootstrapPage,
@@ -30,7 +31,9 @@ function BootstrapPage() {
 			setSecret("");
 			setMessage("Admin bootstrap successful.");
 		} catch (error) {
-			setMessage(error instanceof Error ? error.message : "Bootstrap failed.");
+			setMessage(
+				error instanceof Error ? error.message : "Bootstrap failed.",
+			);
 		} finally {
 			setLoading(false);
 		}
