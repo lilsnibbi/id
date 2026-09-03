@@ -3,11 +3,14 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { getNavigationItems } from "@/lib/navigation";
-
 import { routeTree } from "@/routeTree.gen";
 
-export default function Sidebar() {
-	const items = getNavigationItems(routeTree);
+interface SidebarProps {
+	isAdmin: boolean;
+}
+
+export default function Sidebar({ isAdmin }: SidebarProps) {
+	const items = getNavigationItems(routeTree, isAdmin);
 
 	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -22,12 +25,14 @@ export default function Sidebar() {
 		<aside className="flex min-h-screen w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
 			<div className="border-b border-zinc-800 px-6 py-5">
 				<div className="font-semibold text-white">Maze ID</div>
+
 				<div className="text-xs text-zinc-500">Identity management</div>
 			</div>
 
 			<nav className="space-y-1 p-3">
 				{items.map((item) => {
 					const hasChildren = item.children.length > 0;
+
 					const isCollapsed = collapsed[item.to] ?? false;
 
 					if (!hasChildren) {
@@ -107,6 +112,7 @@ export default function Sidebar() {
 					);
 				})}
 			</nav>
+
 			<div className="mt-auto min-w-0 overflow-hidden border-t border-zinc-800 px-6 py-4">
 				<div
 					className="truncate text-xs text-zinc-600"
