@@ -7,6 +7,7 @@ import {
 
 import { createDb } from "../db";
 import { lifecycleActions } from "../db/schema";
+import { claimLifecycleAction } from "../lib/lifecycle/claim";
 import { executeLifecycleAction } from "../lib/lifecycle/execute";
 import type { LifecycleAction } from "../lib/lifecycle/types";
 
@@ -43,28 +44,11 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 			new Date(action.executeAt),
 		);
 
-		const currentResult = await db
-			.select()
-			.from(lifecycleActions)
-			.where(eq(lifecycleActions.id, lifecycleActionId))
-			.limit(1);
+		const claimedAction = await claimLifecycleAction(db, lifecycleActionId);
 
-		const currentAction = currentResult[0] ?? null;
-
-		if (
-			currentAction.status !== "pending" ||
-			currentAction.cancelledAt !== null
-		) {
+		if (!claimedAction) {
 			return;
 		}
-
-		await db
-			.update(lifecycleActions)
-			.set({
-				status: "processing",
-				updatedAt: Date.now(),
-			})
-			.where(eq(lifecycleActions.id, lifecycleActionId));
 
 		try {
 			await step.do("execute lifecycle action", async () => {
@@ -72,8 +56,8 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 
 				await executeLifecycleAction(
 					db,
-					currentAction.action as LifecycleAction,
-					currentAction.userId,
+					claimedAction.action as LifecycleAction,
+					claimedAction.userId,
 				);
 			});
 
