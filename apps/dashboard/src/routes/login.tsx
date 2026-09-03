@@ -14,7 +14,7 @@ import Spinner from "@/components/ui/Spinner";
 
 import { getPasskeyLoginOptions, login, verifyPasskeyLogin } from "@/lib/api";
 
-interface LoginSearch {
+export interface LoginSearch {
 	return_to?: string;
 }
 
@@ -63,7 +63,9 @@ function LoginPage() {
 	const busy = submitting || passkeySubmitting;
 
 	async function handleLogin(
-		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
+		event: Parameters<
+			NonNullable<React.ComponentProps<"form">["onSubmit"]>
+		>[0],
 	) {
 		event.preventDefault();
 		setSubmitting(true);
@@ -90,7 +92,9 @@ function LoginPage() {
 	}
 
 	async function handlePasskeyLogin(
-		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
+		event: Parameters<
+			NonNullable<React.ComponentProps<"form">["onSubmit"]>
+		>[0],
 	) {
 		event.preventDefault();
 		setPasskeySubmitting(true);
@@ -132,7 +136,9 @@ function LoginPage() {
 				<div className="mb-8">
 					<h1 className="text-2xl font-semibold">Sign in</h1>
 
-					<p className="mt-2 text-sm text-zinc-400">Sign in to Maze ID.</p>
+					<p className="mt-2 text-sm text-zinc-400">
+						Sign in to Maze ID.
+					</p>
 				</div>
 
 				<form
@@ -176,7 +182,9 @@ function LoginPage() {
 							autoComplete="current-password"
 							required
 							value={password}
-							onChange={(event) => setPassword(event.target.value)}
+							onChange={(event) =>
+								setPassword(event.target.value)
+							}
 							disabled={busy}
 						/>
 					</div>
@@ -185,7 +193,9 @@ function LoginPage() {
 						<input
 							type="checkbox"
 							checked={rememberMe}
-							onChange={(event) => setRememberMe(event.target.checked)}
+							onChange={(event) =>
+								setRememberMe(event.target.checked)
+							}
 							disabled={busy}
 						/>
 						Remember me
@@ -244,7 +254,9 @@ function LoginPage() {
 							required
 							autoFocus
 							value={passkeyEmail}
-							onChange={(event) => setPasskeyEmail(event.target.value)}
+							onChange={(event) =>
+								setPasskeyEmail(event.target.value)
+							}
 							disabled={passkeySubmitting}
 						/>
 					</div>
@@ -260,7 +272,9 @@ function LoginPage() {
 						</Button>
 
 						<Button type="submit" disabled={passkeySubmitting}>
-							{passkeySubmitting ? "Authenticating..." : "Continue"}
+							{passkeySubmitting
+								? "Authenticating..."
+								: "Continue"}
 						</Button>
 					</div>
 				</form>

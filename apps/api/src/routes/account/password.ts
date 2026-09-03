@@ -4,13 +4,13 @@ import { getCookie } from "hono/cookie";
 
 import { createDb } from "../../db";
 import { users } from "../../db/schema";
-import { hashPassword, verifyPassword } from "../../lib/password.ts";
+import { hashPassword, verifyPassword } from "../../lib/password";
 import {
 	deleteOtherSessions,
 	getSession,
 	getSessionUser,
 } from "../../lib/session";
-import { requireAuth } from "../../middleware/auth.ts";
+import { requireAuth } from "../../middleware/auth";
 
 const password = new Hono<{ Bindings: Env }>();
 
