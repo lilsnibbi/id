@@ -105,13 +105,18 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 		createdAt: now,
 		updatedAt: now,
 	});
+	try {
+		await c.env.LIFECYCLE_WORKFLOW.create({
+			id,
+			params: {
+				lifecycleActionId: id,
+			},
+		});
+	} catch (error) {
+		await db.delete(lifecycleActions).where(eq(lifecycleActions.id, id));
 
-	await c.env.LIFECYCLE_WORKFLOW.create({
-		id,
-		params: {
-			lifecycleActionId: id,
-		},
-	});
+		throw error;
+	}
 
 	return c.json(
 		{
