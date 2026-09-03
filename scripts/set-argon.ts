@@ -1,3 +1,6 @@
+/**
+ * Sets the Argon2id feature flag to the requested variation.
+ */
 import { loadGenerated, runWranglerAndCheck } from "./shared";
 
 const variation = Bun.argv[2];
