@@ -4,7 +4,6 @@ import type { Database } from "../../db";
 import { lifecycleActions } from "../../db/schema";
 import { disableUser } from "./actions/disable";
 import { enableUser } from "./actions/enable";
-import { LIFECYCLE_ACTIONS } from "./types";
 
 export async function executeLifecycleAction(
 	db: Database,
@@ -25,23 +24,16 @@ export async function executeLifecycleAction(
 		return false;
 	}
 
-	if (
-		!LIFECYCLE_ACTIONS.includes(
-			action.action as (typeof LIFECYCLE_ACTIONS)[number],
-		)
-	) {
-		throw new Error(`Invalid lifecycle action: ${action.action}`);
-	}
-
 	switch (action.action) {
 		case "disable":
 			await disableUser(db, action.userId);
-			break;
+			return true;
 
 		case "enable":
 			await enableUser(db, action.userId);
-			break;
-	}
+			return true;
 
-	return true;
+		default:
+			throw new Error(`Invalid lifecycle action: ${action.action}`);
+	}
 }
