@@ -1,17 +1,24 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
-import { createDb } from "./../../db";
-import { lifecycleActions, users } from "./../../db/schema";
-import { requireAdmin } from "./../../middleware/auth";
+import { createDb } from "../../db";
+import { lifecycleActions, users } from "../../db/schema";
+import { requireAdmin } from "../../middleware/auth";
 import {
 	LIFECYCLE_ACTIONS,
 	type LifecycleAction,
 } from "../../lib/lifecycle/types";
 
 /**
- * Controls the actions allowed by the lifecycle endpoint, guard it with your life soldier
+ * Controls the actions allowed by the lifecycle endpoint.
+ * Guard it with your life, soldier.
  */
+function isLifecycleAction(value: unknown): value is LifecycleAction {
+	return (
+		typeof value === "string" &&
+		LIFECYCLE_ACTIONS.includes(value as LifecycleAction)
+	);
+}
 
 const lifecycle = new Hono<{
 	Bindings: Env;
@@ -29,12 +36,23 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 		);
 	}
 
-	const body = await c.req.json<{
-		action: string;
-		executeAt: number;
-	}>();
+	const body = await c.req.json<unknown>();
 
-	if (!LIFECYCLE_ACTIONS.includes(body.action as LifecycleAction)) {
+	if (typeof body !== "object" || body === null || Array.isArray(body)) {
+		return c.json(
+			{
+				error: "invalid_body",
+			},
+			400,
+		);
+	}
+
+	const { action, executeAt } = body as {
+		action?: unknown;
+		executeAt?: unknown;
+	};
+
+	if (!isLifecycleAction(action)) {
 		return c.json(
 			{
 				error: "invalid_action",
@@ -44,16 +62,17 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 	}
 
 	if (
-		typeof body.executeAt !== "number" ||
-		!Number.isFinite(body.executeAt) ||
-		body.executeAt <= Date.now()
-	)
+		typeof executeAt !== "number" ||
+		!Number.isFinite(executeAt) ||
+		executeAt <= Date.now()
+	) {
 		return c.json(
 			{
 				error: "invalid_execute_at",
 			},
 			400,
 		);
+	}
 
 	const db = createDb(c.env.DB);
 
@@ -80,8 +99,8 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 	await db.insert(lifecycleActions).values({
 		id,
 		userId,
-		action: body.action,
-		executeAt: body.executeAt,
+		action,
+		executeAt,
 		status: "pending",
 		createdAt: now,
 		updatedAt: now,
@@ -98,8 +117,8 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 		{
 			id,
 			userId,
-			action: body.action,
-			executeAt: body.executeAt,
+			action,
+			executeAt,
 			status: "pending",
 			createdAt: now,
 			updatedAt: now,
