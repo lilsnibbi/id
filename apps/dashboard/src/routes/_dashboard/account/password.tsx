@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import type { FormEvent } from "react";
 
 import { useToast } from "@/components/toast/ToastProvider";
 import Button from "@/components/ui/Button";
@@ -31,11 +32,7 @@ function ChangePasswordPage() {
 	const isValid =
 		currentPassword.length > 0 && newPassword.length >= 8 && passwordsMatch;
 
-	async function handleSubmit(
-		event: Parameters<
-			NonNullable<React.ComponentProps<"form">["onSubmit"]>
-		>[0],
-	) {
+	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (!isValid) {
