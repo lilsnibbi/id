@@ -5,5 +5,5 @@
   "types": ["bun", "@cloudflare/workers-types"],
   "allowImportingTsExtensions": true
  },
- "include": ["src", "worker-configuration.d.ts", "drizzle.config.ts"]
+ "include": ["./src", "./worker-configuration.d.ts", "./drizzle.config.ts"]
 }
