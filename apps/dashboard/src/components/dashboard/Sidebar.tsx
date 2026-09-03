@@ -107,8 +107,11 @@ export default function Sidebar() {
 					);
 				})}
 			</nav>
-			<div className="mt-auto border-t border-zinc-800 px-6 py-4">
-				<div className="text-xs text-zinc-600">
+			<div className="mt-auto min-w-0 overflow-hidden border-t border-zinc-800 px-6 py-4">
+				<div
+					className="truncate text-xs text-zinc-600"
+					title={`Build ${__APP_VERSION__}`}
+				>
 					Build {__APP_VERSION__}
 				</div>
 			</div>
