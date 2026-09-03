@@ -5,6 +5,17 @@ import { lifecycleActions } from "../../db/schema";
 import { disableUser } from "./actions/disable";
 import { enableUser } from "./actions/enable";
 
+/**
+ * Executes a lifecycle action for a user.
+ *
+ * An action is skipped when a newer action of the same type is already
+ * scheduled for the same user.
+ *
+ * @param db The database connection.
+ * @param action The lifecycle action to execute.
+ * @returns `true` when the action is executed, or `false` when it is skipped.
+ * @throws If the lifecycle action type is invalid.
+ */
 export async function executeLifecycleAction(
 	db: Database,
 	action: typeof lifecycleActions.$inferSelect,
@@ -15,6 +26,7 @@ export async function executeLifecycleAction(
 		.where(
 			and(
 				eq(lifecycleActions.userId, action.userId),
+				eq(lifecycleActions.action, action.action),
 				gt(lifecycleActions.executeAt, action.executeAt),
 			),
 		)
