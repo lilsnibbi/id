@@ -1,5 +1,5 @@
 {
- "version": "0.3.2-beta",
+ "version": "0.3.2-beta.2885142f5ef2a82b1a05f675d119565fd78352a4",
  "private": true,
  "workspaces": [
   "apps/*"

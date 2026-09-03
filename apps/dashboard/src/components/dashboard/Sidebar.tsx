@@ -19,7 +19,7 @@ export default function Sidebar() {
 	}
 
 	return (
-		<aside className="w-64 shrink-0 border-r border-zinc-800 bg-zinc-950">
+		<aside className="flex min-h-screen w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
 			<div className="border-b border-zinc-800 px-6 py-5">
 				<div className="font-semibold text-white">Maze ID</div>
 				<div className="text-xs text-zinc-500">Identity management</div>
