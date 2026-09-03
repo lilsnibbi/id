@@ -1,8 +1,17 @@
+/**
+ * Parsed browser and operating system information from a user agent.
+ */
 export interface UserAgentInfo {
 	browser: string;
 	os: string;
 }
 
+/**
+ * Parses browser and operating system information from a user agent.
+ *
+ * @param userAgent The user agent string to parse.
+ * @returns The parsed browser and operating system information.
+ */
 export function parseUserAgent(userAgent: string | undefined): UserAgentInfo {
 	if (!userAgent) {
 		return {
