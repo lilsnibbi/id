@@ -4,12 +4,14 @@ import { Hono } from "hono";
 import { createDb } from "./../../db";
 import { lifecycleActions, users } from "./../../db/schema";
 import { requireAdmin } from "./../../middleware/auth";
+import {
+	LIFECYCLE_ACTIONS,
+	type LifecycleAction,
+} from "../../lib/lifecycle/types";
 
 /**
  * Controls the actions allowed by the lifecycle endpoint, guard it with your life soldier
  */
-const LIFECYCLE_ACTIONS = ["enable", "disable"] as const;
-type LifecycleAction = (typeof LIFECYCLE_ACTIONS)[number];
 
 const lifecycle = new Hono<{
 	Bindings: Env;

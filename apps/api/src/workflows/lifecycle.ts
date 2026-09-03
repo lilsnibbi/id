@@ -7,6 +7,8 @@ import {
 
 import { createDb } from "../db";
 import { lifecycleActions } from "../db/schema";
+import { executeLifecycleAction } from "../lib/lifecycle/execute";
+import type { LifecycleAction } from "../lib/lifecycle/types";
 
 export interface LifecycleWorkflowParams {
 	lifecycleActionId: string;
@@ -32,9 +34,7 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 
 		const action = result[0] ?? null;
 
-		console.log("Loaded lifecycle action:", action);
-
-		if (!action) {
+		if (action.status !== "pending") {
 			return;
 		}
 
@@ -43,8 +43,65 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 			new Date(action.executeAt),
 		);
 
-		await step.do("execute lifecycle action", async () => {
-			console.log(`Executing lifecycle action ${action.id}`);
-		});
+		const currentResult = await db
+			.select()
+			.from(lifecycleActions)
+			.where(eq(lifecycleActions.id, lifecycleActionId))
+			.limit(1);
+
+		const currentAction = currentResult[0] ?? null;
+
+		if (
+			currentAction.status !== "pending" ||
+			currentAction.cancelledAt !== null
+		) {
+			return;
+		}
+
+		await db
+			.update(lifecycleActions)
+			.set({
+				status: "processing",
+				updatedAt: Date.now(),
+			})
+			.where(eq(lifecycleActions.id, lifecycleActionId));
+
+		try {
+			await step.do("execute lifecycle action", async () => {
+				const db = createDb(this.env.DB);
+
+				await executeLifecycleAction(
+					db,
+					currentAction.action as LifecycleAction,
+					currentAction.userId,
+				);
+			});
+
+			const now = Date.now();
+
+			await db
+				.update(lifecycleActions)
+				.set({
+					status: "completed",
+					executedAt: now,
+					updatedAt: now,
+				})
+				.where(eq(lifecycleActions.id, lifecycleActionId));
+		} catch (error) {
+			const now = Date.now();
+			const message =
+				error instanceof Error ? error.message : String(error);
+
+			await db
+				.update(lifecycleActions)
+				.set({
+					status: "failed",
+					error: message,
+					updatedAt: now,
+				})
+				.where(eq(lifecycleActions.id, lifecycleActionId));
+
+			throw error;
+		}
 	}
 }
