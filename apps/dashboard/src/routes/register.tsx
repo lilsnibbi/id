@@ -36,7 +36,9 @@ function RegisterPage() {
 	const canSubmit = emailValid && passwordValid && passwordsMatch && !loading;
 
 	async function handleSubmit(
-		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
+		event: Parameters<
+			NonNullable<React.ComponentProps<"form">["onSubmit"]>
+		>[0],
 	) {
 		event.preventDefault();
 
@@ -101,7 +103,9 @@ function RegisterPage() {
 								id="email"
 								type="email"
 								value={email}
-								onChange={(event) => setEmail(event.target.value)}
+								onChange={(event) =>
+									setEmail(event.target.value)
+								}
 								placeholder="you@example.com"
 								autoComplete="email"
 								autoFocus
@@ -122,7 +126,9 @@ function RegisterPage() {
 								id="password"
 								type="password"
 								value={password}
-								onChange={(event) => setPassword(event.target.value)}
+								onChange={(event) =>
+									setPassword(event.target.value)
+								}
 								placeholder="Create a password"
 								autoComplete="new-password"
 								disabled={loading}
@@ -131,7 +137,9 @@ function RegisterPage() {
 
 							<p
 								className={`mt-2 text-xs ${
-									passwordValid ? "text-emerald-400" : "text-zinc-600"
+									passwordValid
+										? "text-emerald-400"
+										: "text-zinc-600"
 								}`}
 							>
 								{passwordValid
@@ -152,27 +160,35 @@ function RegisterPage() {
 								id="confirm-password"
 								type="password"
 								value={confirmPassword}
-								onChange={(event) => setConfirmPassword(event.target.value)}
+								onChange={(event) =>
+									setConfirmPassword(event.target.value)
+								}
 								placeholder="Enter your password again"
 								autoComplete="new-password"
 								disabled={loading}
 								required
 							/>
 
-							{confirmPassword.length > 0 && (
+							{password.length > 0 && (
 								<p
 									className={`mt-2 text-xs ${
-										passwordsMatch ? "text-emerald-400" : "text-red-400"
+										passwordValid
+											? "text-emerald-400"
+											: "text-red-400"
 									}`}
 								>
-									{passwordsMatch
-										? "Passwords match."
-										: "Passwords do not match."}
+									{passwordValid
+										? "Password meets the minimum requirements."
+										: "Password must be at least 12 characters."}
 								</p>
 							)}
 						</div>
 
-						<Button type="submit" className="w-full" disabled={!canSubmit}>
+						<Button
+							type="submit"
+							className="w-full"
+							disabled={!canSubmit}
+						>
 							Create account
 						</Button>
 					</form>
