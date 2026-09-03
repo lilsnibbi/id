@@ -1,3 +1,6 @@
+/**
+ * Provisions the profile R2 bucket and configures its Worker binding.
+ */
 import {
 	listR2Buckets,
 	loadGenerated,
@@ -51,7 +54,10 @@ if (bucket) {
 		console.log();
 		console.log("Generating Wrangler types...");
 
-		await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");
+		await runWranglerAndCheck(
+			["types"],
+			"Failed to generate Wrangler types.",
+		);
 
 		console.log("Wrangler types generated.");
 
