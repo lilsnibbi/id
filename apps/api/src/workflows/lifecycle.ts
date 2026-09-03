@@ -22,17 +22,17 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 	) {
 		const { lifecycleActionId } = event.payload;
 
-		const action = await step.do("load lifecycle action", async () => {
-			const db = createDb(this.env.DB);
+		const db = createDb(this.env.DB);
 
-			const result = await db
-				.select()
-				.from(lifecycleActions)
-				.where(eq(lifecycleActions.id, lifecycleActionId))
-				.limit(1);
+		const result = await db
+			.select()
+			.from(lifecycleActions)
+			.where(eq(lifecycleActions.id, lifecycleActionId))
+			.limit(1);
 
-			return result[0] ?? null;
-		});
+		const action = result[0] ?? null;
+
+		console.log("Loaded lifecycle action:", action);
 
 		if (!action) {
 			return;

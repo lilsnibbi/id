@@ -5,6 +5,6 @@ import lifecycle from "./lifecycle";
 const admin = new Hono<{ Bindings: Env }>();
 
 admin.route("/bootstrap", bootstrap);
-admin.route("/lifecycle", lifecycle);
+admin.route("/", lifecycle);
 
 export default admin;

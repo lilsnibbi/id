@@ -44,7 +44,7 @@ lifecycle.post("/users/:userId/lifecycle", requireAdmin, async (c) => {
 	if (
 		typeof body.executeAt !== "number" ||
 		!Number.isFinite(body.executeAt) ||
-		body.executeAt <= Date.now() + 60000
+		body.executeAt <= Date.now()
 	)
 		return c.json(
 			{

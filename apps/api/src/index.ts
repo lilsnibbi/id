@@ -28,3 +28,8 @@ app.route("/oauth", oauth);
 app.route("/.well-known", wellKnown);
 
 export default app;
+
+// Wrangler insisted this was re exported in the worker source file
+import { LifecycleWorkflow } from "./workflows/lifecycle";
+
+export { LifecycleWorkflow };
