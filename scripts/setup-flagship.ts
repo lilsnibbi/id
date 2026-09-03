@@ -1,3 +1,6 @@
+/**
+ * Provisions the Flagship app and feature flag used by the API.
+ */
 import {
 	API_CONFIG_PATH,
 	listFlagshipApps,
@@ -21,6 +24,12 @@ if (!generated.instanceName) {
 const appName = `${generated.instanceName}-api-flags`;
 const flagName = "use-argon-2-id";
 
+/**
+ * Finds the configured Flagship app or creates it if necessary.
+ *
+ * @returns The existing or newly created Flagship app.
+ * @throws If multiple matching apps exist or the app cannot be uniquely identified after creation.
+ */
 async function getOrCreateFlagshipApp(): Promise<FlagshipApp> {
 	const apps = await listFlagshipApps();
 	const matches = apps.filter((app) => app.name === appName);
@@ -79,8 +88,14 @@ async function getOrCreateFlagshipApp(): Promise<FlagshipApp> {
 	return createdMatches[0];
 }
 
+/**
+ * Updates the API Wrangler configuration with the Flagship binding.
+ *
+ * @param appId The ID of the Flagship application.
+ */
 async function updateFlagshipBinding(appId: string) {
 	const config = await loadWranglerConfig(API_CONFIG_PATH);
+
 	const flagship = Array.isArray(config.flagship) ? config.flagship : [];
 
 	const binding = {
@@ -107,6 +122,12 @@ async function updateFlagshipBinding(appId: string) {
 	await Bun.write(API_CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
 }
 
+/**
+ * Creates the Argon2id feature flag if it does not already exist.
+ *
+ * @param appId The ID of the Flagship application.
+ * @throws If the Flagship flag cannot be created.
+ */
 async function setupFlag(appId: string) {
 	const flags = await listFlagshipFlags(appId);
 	const existingFlag = flags.find((flag) => flag.key === flagName);
@@ -114,6 +135,7 @@ async function setupFlag(appId: string) {
 	if (existingFlag) {
 		console.log(`Using existing Flagship flag: ${flagName}`);
 		console.log();
+
 		return;
 	}
 
