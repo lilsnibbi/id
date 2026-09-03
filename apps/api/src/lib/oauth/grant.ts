@@ -7,6 +7,14 @@ import {
 	oauthRefreshTokens,
 } from "../../db/schema";
 
+/**
+ * Grants OAuth access to a client for a user.
+ *
+ * An existing grant is updated and unrevoked instead of creating a duplicate.
+ *
+ * @param db The database connection.
+ * @param input The user, client, and scopes to grant.
+ */
 export async function grantOAuthAccess(
 	db: Database,
 	input: {
@@ -50,6 +58,16 @@ export async function grantOAuthAccess(
 	});
 }
 
+/**
+ * Revokes OAuth access previously granted to a client.
+ *
+ * The grant and all active access and refresh tokens for the user and client
+ * are revoked.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user whose access should be revoked.
+ * @param clientId The OAuth client ID whose access should be revoked.
+ */
 export async function revokeOAuthAccess(
 	db: Database,
 	userId: string,
