@@ -11,3 +11,16 @@ export const LIFECYCLE_STATUSES = [
 ] as const;
 
 export type LifecycleStatus = (typeof LIFECYCLE_STATUSES)[number];
+
+export interface LifecycleActionRecord {
+	id: string;
+	userId: string;
+	action: LifecycleAction;
+	executeAt: number;
+	status: LifecycleStatus;
+	createdAt: number;
+	updatedAt: number;
+	executedAt: number | null;
+	cancelledAt: number | null;
+	error: string | null;
+}
