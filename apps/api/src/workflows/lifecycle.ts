@@ -35,7 +35,7 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 
 		const action = result[0] ?? null;
 
-		if (action.status !== "pending") {
+		if (action?.status !== "pending") {
 			return;
 		}
 
