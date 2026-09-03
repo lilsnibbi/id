@@ -65,6 +65,23 @@ const apiConfig = {
 			}
 		: {}),
 
+	...(existingApiConfig.r2_buckets
+		? {
+				r2_buckets: existingApiConfig.r2_buckets,
+			}
+		: {}),
+
+	ratelimits: [
+		{
+			name: "AUTH_RATE_LIMITER",
+			namespace_id: "80085",
+			simple: {
+				limit: 10,
+				period: 60,
+			},
+		},
+	],
+
 	workflows: [
 		{
 			binding: "LIFECYCLE_WORKFLOW",
