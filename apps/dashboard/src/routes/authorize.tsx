@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { getOAuthClientDetails, api } from "@/lib/api";
 
-interface AuthorizeSearch {
+export interface AuthorizeSearch {
 	client_id?: string;
 	redirect_uri?: string;
 	response_type?: string;
@@ -24,7 +24,9 @@ export const Route = createFileRoute("/authorize")({
 		client_id:
 			typeof search.client_id === "string" ? search.client_id : undefined,
 		redirect_uri:
-			typeof search.redirect_uri === "string" ? search.redirect_uri : undefined,
+			typeof search.redirect_uri === "string"
+				? search.redirect_uri
+				: undefined,
 		response_type:
 			typeof search.response_type === "string"
 				? search.response_type
@@ -113,19 +115,22 @@ function AuthorizePage() {
 		setError(null);
 
 		try {
-			const response = await api<{ redirect_uri: string }>("/oauth/approve", {
-				method: "POST",
-				body: JSON.stringify({
-					client_id: search.client_id,
-					redirect_uri: search.redirect_uri,
-					response_type: search.response_type,
-					scope: search.scope,
-					state: search.state,
-					code_challenge: search.code_challenge,
-					code_challenge_method: search.code_challenge_method,
-					nonce: search.nonce,
-				}),
-			});
+			const response = await api<{ redirect_uri: string }>(
+				"/oauth/approve",
+				{
+					method: "POST",
+					body: JSON.stringify({
+						client_id: search.client_id,
+						redirect_uri: search.redirect_uri,
+						response_type: search.response_type,
+						scope: search.scope,
+						state: search.state,
+						code_challenge: search.code_challenge,
+						code_challenge_method: search.code_challenge_method,
+						nonce: search.nonce,
+					}),
+				},
+			);
 
 			window.location.href = response.redirect_uri;
 		} catch (error) {
@@ -147,7 +152,8 @@ function AuthorizePage() {
 					</h1>
 
 					<p className="mt-2 text-sm text-zinc-500">
-						The authorization request is missing required parameters.
+						The authorization request is missing required
+						parameters.
 					</p>
 				</div>
 			</div>

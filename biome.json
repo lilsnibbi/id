@@ -28,6 +28,14 @@
     "indentStyle": "space",
     "indentWidth": 1
    }
+  },
+  {
+   "includes": ["**/*.jsonc"],
+   "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 1,
+    "trailingCommas": "none"
+   }
   }
  ],
  "linter": {

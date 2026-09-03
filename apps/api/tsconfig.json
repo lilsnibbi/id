@@ -3,10 +3,9 @@
  "compilerOptions": {
   "lib": ["ESNext"],
   "types": ["bun", "@cloudflare/workers-types"],
-  "allowImportingTsExtensions": true,
   "composite": true,
   "declaration": true,
-  "noEmit": false
+  "noEmit": true
  },
  "include": ["./src", "./worker-configuration.d.ts", "./drizzle.config.ts"]
 }

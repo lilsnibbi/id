@@ -56,6 +56,13 @@ const apiConfig = {
 				flagship: existingApiConfig.flagship,
 			}
 		: {}),
+	workflows: [
+		{
+			binding: "LIFECYCLE_WORKFLOW",
+			name: `${instanceName}-lifecycle`,
+			class_name: "LifecycleWorkflow",
+		},
+	],
 };
 
 await writeConfig(apiConfigFile, API_CONFIG_PATH, apiConfig);
