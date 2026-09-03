@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_dashboard/admin/clients")({
 		navigation: {
 			label: "Clients",
 			order: 5,
+			adminOnly: true,
 		},
 	},
 	component: ClientsPage,
@@ -26,7 +27,9 @@ function ClientsPage() {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [modalOpen, setModalOpen] = useState(false);
-	const [editingClient, setEditingClient] = useState<OAuthClient | null>(null);
+	const [editingClient, setEditingClient] = useState<OAuthClient | null>(
+		null,
+	);
 
 	const loadClients = useCallback(async () => {
 		try {
@@ -81,9 +84,12 @@ function ClientsPage() {
 			<div className="space-y-6">
 				<div className="flex items-start justify-between gap-4">
 					<div>
-						<h1 className="text-xl font-semibold text-white">OAuth clients</h1>
+						<h1 className="text-xl font-semibold text-white">
+							OAuth clients
+						</h1>
 						<p className="mt-1 text-sm text-zinc-500">
-							Manage applications that can authenticate users with Maze ID.
+							Manage applications that can authenticate users with
+							Maze ID.
 						</p>
 					</div>
 
@@ -105,9 +111,12 @@ function ClientsPage() {
 
 				{clients.length === 0 ? (
 					<Card className="p-8 text-center">
-						<h2 className="text-sm font-medium text-white">No OAuth clients</h2>
+						<h2 className="text-sm font-medium text-white">
+							No OAuth clients
+						</h2>
 						<p className="mt-2 text-sm text-zinc-500">
-							Create a client to connect an application to Maze ID.
+							Create a client to connect an application to Maze
+							ID.
 						</p>
 						<Button className="mt-5" onClick={openCreate}>
 							Create client
