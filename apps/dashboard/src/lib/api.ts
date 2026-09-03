@@ -27,9 +27,7 @@ export async function api<T>(
 	const data = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		throw new Error(
-			data?.error ?? "Something went wrong. Please try again.",
-		);
+		throw new Error(data?.error ?? "Something went wrong. Please try again.");
 	}
 
 	return data as T;

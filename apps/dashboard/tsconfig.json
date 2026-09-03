@@ -1,20 +1,17 @@
 {
+ "extends": "../../tsconfig.json",
  "compilerOptions": {
-  "target": "ES2022",
-  "lib": ["ES2022", "DOM", "DOM.Iterable"],
-  "module": "ESNext",
-  "moduleResolution": "Bundler",
+  "lib": ["ESNext", "DOM", "DOM.Iterable"],
+  "types": ["bun", "vite/client"],
   "jsx": "react-jsx",
-  "strict": true,
-  "noEmit": true,
-  "skipLibCheck": true,
+  "ignoreDeprecations": "6.0",
+  "baseUrl": ".",
   "paths": {
-   "@/*": ["./src/*"],
-   "@components/*": ["./src/components/*"],
-   "@routes/*": ["./src/routes/*"],
-   "@styles/*": ["./src/styles/*"]
+   "@/*": ["src/*"],
+   "@components/*": ["src/components/*"],
+   "@routes/*": ["src/routes/*"],
+   "@styles/*": ["src/styles/*"]
   }
  },
- "include": ["src"],
- "exclude": ["worker.ts", "worker-configuration.d.ts"]
+ "include": ["src"]
 }

@@ -1,10 +1,13 @@
 import {
 	API_CONFIG_PATH,
+	listFlagshipApps,
+	listFlagshipFlags,
 	loadGenerated,
 	loadWranglerConfig,
 	runWrangler,
 	runWranglerAndCheck,
 	saveGenerated,
+	type FlagshipApp,
 } from "./shared";
 
 const generated = await loadGenerated();
@@ -18,53 +21,132 @@ if (!generated.instanceName) {
 const appName = `${generated.instanceName}-api-flags`;
 const flagName = "use-argon-2-id";
 
-console.log(`Creating Flagship app: ${appName}`);
-console.log();
+async function getOrCreateFlagshipApp(): Promise<FlagshipApp> {
+	const apps = await listFlagshipApps();
+	const matches = apps.filter((app) => app.name === appName);
 
-const createAppProcess = runWrangler([
-	"flagship",
-	"apps",
-	"create",
-	appName,
-	"--binding",
-	"FLAGS",
-	"--update-config",
-]);
+	if (matches.length > 1) {
+		throw new Error(
+			[
+				`Multiple Flagship apps named "${appName}" were found:`,
+				...matches.map((app) => `  ${app.id}`),
+				"",
+				"Please remove the duplicate Flagship app and run setup again.",
+			].join("\n"),
+		);
+	}
 
-const appExitCode = await createAppProcess.exited;
+	if (matches.length === 1) {
+		const app = matches[0];
 
-if (appExitCode !== 0) {
-	throw new Error(
-		`Failed to create Flagship app. Wrangler exited with code ${appExitCode}.`,
+		console.log(`Using existing Flagship app: ${app.name}`);
+		console.log(`App ID: ${app.id}`);
+		console.log();
+
+		return app;
+	}
+
+	console.log(`Creating Flagship app: ${appName}`);
+	console.log();
+
+	const createAppProcess = runWrangler([
+		"flagship",
+		"apps",
+		"create",
+		appName,
+		"--binding",
+		"FLAGS",
+		"--update-config",
+	]);
+
+	const exitCode = await createAppProcess.exited;
+
+	if (exitCode !== 0) {
+		throw new Error(
+			`Failed to create Flagship app. Wrangler exited with code ${exitCode}.`,
+		);
+	}
+
+	const createdApps = await listFlagshipApps();
+	const createdMatches = createdApps.filter((app) => app.name === appName);
+
+	if (createdMatches.length !== 1) {
+		throw new Error(
+			`Created Flagship app "${appName}", but could not uniquely identify it afterward.`,
+		);
+	}
+
+	return createdMatches[0];
+}
+
+async function updateFlagshipBinding(appId: string) {
+	const config = await loadWranglerConfig(API_CONFIG_PATH);
+	const flagship = Array.isArray(config.flagship) ? config.flagship : [];
+
+	const binding = {
+		binding: "FLAGS",
+		app_id: appId,
+	};
+
+	const index = flagship.findIndex(
+		(item) =>
+			item &&
+			typeof item === "object" &&
+			"binding" in item &&
+			item.binding === "FLAGS",
 	);
+
+	if (index >= 0) {
+		flagship[index] = binding;
+	} else {
+		flagship.push(binding);
+	}
+
+	config.flagship = flagship;
+
+	await Bun.write(API_CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
 }
 
-const config = await loadWranglerConfig();
+async function setupFlag(appId: string) {
+	const flags = await listFlagshipFlags(appId);
+	const existingFlag = flags.find((flag) => flag.key === flagName);
 
-const flagship = config.flagship;
+	if (existingFlag) {
+		console.log(`Using existing Flagship flag: ${flagName}`);
+		console.log();
+		return;
+	}
 
-if (!Array.isArray(flagship)) {
-	throw new Error(`No Flagship configuration found in ${API_CONFIG_PATH}.`);
+	console.log(`Creating Flagship flag: ${flagName}`);
+	console.log();
+
+	const createFlagProcess = runWrangler([
+		"flagship",
+		"flags",
+		"create",
+		appId,
+		flagName,
+		"--variation",
+		"on=true",
+		"--variation",
+		"off=false",
+		"--default",
+		"off",
+	]);
+
+	const exitCode = await createFlagProcess.exited;
+
+	if (exitCode !== 0) {
+		throw new Error(
+			`Failed to create Flagship flag. Wrangler exited with code ${exitCode}.`,
+		);
+	}
 }
 
-const binding = flagship.find(
-	(item) =>
-		item &&
-		typeof item === "object" &&
-		"binding" in item &&
-		item.binding === "FLAGS",
-);
+const app = await getOrCreateFlagshipApp();
+const appId = app.id;
 
-if (
-	!binding ||
-	typeof binding !== "object" ||
-	!("app_id" in binding) ||
-	typeof binding.app_id !== "string"
-) {
-	throw new Error(`No FLAGS app_id found in ${API_CONFIG_PATH}.`);
-}
-
-const appId = binding.app_id;
+await updateFlagshipBinding(appId);
 
 await saveGenerated({
 	flagship: {
@@ -73,47 +155,20 @@ await saveGenerated({
 	},
 });
 
-console.log();
-console.log(`Creating Flagship flag: ${flagName}`);
-console.log();
-
-const createFlagProcess = runWrangler([
-	"flagship",
-	"flags",
-	"create",
-	appId,
-	flagName,
-	"--variation",
-	"on=true",
-	"--variation",
-	"off=false",
-	"--default",
-	"off",
-]);
-
-const flagExitCode = await createFlagProcess.exited;
-
-if (flagExitCode !== 0) {
-	throw new Error(
-		`Failed to create Flagship flag. Wrangler exited with code ${flagExitCode}.`,
-	);
-}
-
-console.log();
-console.log("Flagship setup complete.");
-console.log(`App: ${appName}`);
+console.log(`Flagship app: ${appName}`);
 console.log(`App ID: ${appId}`);
 console.log("Binding: FLAGS");
-console.log(`Flag: ${flagName}`);
-console.log("Default: off");
-
 console.log();
+
+await setupFlag(appId);
+
 console.log("Generating Wrangler types...");
 
 await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");
 
 console.log("Wrangler types generated.");
 console.log();
+
 console.log("Flagship setup complete.");
 console.log(`App: ${appName}`);
 console.log(`App ID: ${appId}`);

@@ -209,3 +209,138 @@ export async function updateD1Binding(
 
 	await Bun.write(API_CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
 }
+
+export type R2Bucket = {
+	name: string;
+};
+
+export async function listR2Buckets(): Promise<R2Bucket[]> {
+	const process = Bun.spawn(["bunx", "wrangler", "r2", "bucket", "list"], {
+		cwd: API_DIR,
+		stdout: "pipe",
+		stderr: "inherit",
+	});
+
+	const output = await new Response(process.stdout).text();
+	const exitCode = await process.exited;
+
+	if (exitCode !== 0) {
+		throw new Error(
+			`Failed to list R2 buckets. Wrangler exited with code ${exitCode}.`,
+		);
+	}
+
+	return output.split(/\r?\n/).flatMap((line) => {
+		const match = line.match(/^name:\s+(.+)$/);
+
+		return match ? [{ name: match[1].trim() }] : [];
+	});
+}
+
+export async function updateR2Binding(bucketName: string, bindingName: string) {
+	const config = await loadWranglerConfig(API_CONFIG_PATH);
+
+	const buckets = Array.isArray(config.r2_buckets) ? config.r2_buckets : [];
+
+	const binding = {
+		binding: bindingName,
+		bucket_name: bucketName,
+	};
+
+	const index = buckets.findIndex(
+		(bucket) =>
+			bucket &&
+			typeof bucket === "object" &&
+			"binding" in bucket &&
+			bucket.binding === bindingName,
+	);
+
+	if (index >= 0) {
+		buckets[index] = binding;
+	} else {
+		buckets.push(binding);
+	}
+
+	config.r2_buckets = buckets;
+
+	await Bun.write(API_CONFIG_PATH, `${JSON.stringify(config, null, "\t")}\n`);
+}
+
+export type FlagshipApp = {
+	id: string;
+	name: string;
+	created_at: string;
+	updated_at: string;
+	updated_by: string;
+};
+
+export async function listFlagshipApps(): Promise<FlagshipApp[]> {
+	const process = Bun.spawn(
+		["bunx", "wrangler", "flagship", "apps", "list", "--json"],
+		{
+			cwd: API_DIR,
+			stdout: "pipe",
+			stderr: "inherit",
+		},
+	);
+
+	const output = await new Response(process.stdout).text();
+	const exitCode = await process.exited;
+
+	if (exitCode !== 0) {
+		throw new Error(
+			`Failed to list Flagship apps. Wrangler exited with code ${exitCode}.`,
+		);
+	}
+
+	try {
+		return JSON.parse(output) as FlagshipApp[];
+	} catch {
+		throw new Error("Failed to parse Flagship app list.");
+	}
+}
+
+export type FlagshipFlag = {
+	key: string;
+	type: string;
+	default_variation: string;
+	variations: Record<string, boolean>;
+	rules: unknown[];
+	description: string | null;
+	enabled: boolean;
+	updated_at: string;
+	updated_by: string;
+};
+
+export async function listFlagshipFlags(
+	appId: string,
+): Promise<FlagshipFlag[]> {
+	const process = Bun.spawn(
+		["bunx", "wrangler", "flagship", "flags", "list", appId, "--all", "--json"],
+		{
+			cwd: API_DIR,
+			stdout: "pipe",
+			stderr: "inherit",
+		},
+	);
+
+	const output = await new Response(process.stdout).text();
+	const exitCode = await process.exited;
+
+	if (exitCode !== 0) {
+		throw new Error(
+			`Failed to list Flagship flags. Wrangler exited with code ${exitCode}.`,
+		);
+	}
+
+	try {
+		const result = JSON.parse(output) as {
+			items: FlagshipFlag[];
+			cursor: string | null;
+		};
+
+		return result.items;
+	} catch {
+		throw new Error("Failed to parse Flagship flag list.");
+	}
+}

@@ -1,9 +1,11 @@
 import {
+	listR2Buckets,
 	loadGenerated,
-	loadWranglerConfig,
+	randomSuffix,
 	runWrangler,
 	runWranglerAndCheck,
 	saveGenerated,
+	updateR2Binding,
 } from "./shared";
 
 const generated = await loadGenerated();
@@ -14,66 +16,130 @@ if (!generated.instanceName) {
 	);
 }
 
-const bucketName = `${generated.instanceName}-profile`;
+const defaultBucketName = `${generated.instanceName}-profile`;
 const bindingName = "PROFILE_BUCKET";
 
-console.log(`Creating R2 bucket: ${bucketName}`);
+console.log(`Checking R2 bucket: ${defaultBucketName}`);
 console.log();
 
-const createBucketProcess = runWrangler([
-	"r2",
-	"bucket",
-	"create",
-	bucketName,
-	"--binding",
-	bindingName,
-	"--update-config",
-]);
+const buckets = await listR2Buckets();
 
-const bucketExitCode = await createBucketProcess.exited;
+let bucket = buckets.find((item) => item.name === defaultBucketName);
 
-if (bucketExitCode !== 0) {
-	throw new Error(
-		`Failed to create R2 bucket. Wrangler exited with code ${bucketExitCode}.`,
+if (bucket) {
+	console.log(`An R2 bucket named "${defaultBucketName}" already exists.`);
+	console.log();
+
+	const answer = prompt("Is this the bucket you want to use? [Y/n] ");
+
+	const useExisting =
+		!answer || ["y", "yes"].includes(answer.trim().toLowerCase());
+
+	if (useExisting) {
+		await updateR2Binding(bucket.name, bindingName);
+
+		await saveGenerated({
+			r2: {
+				bucketName: bucket.name,
+				binding: bindingName,
+			},
+		});
+
+		console.log();
+		console.log(`Using existing bucket: ${bucket.name}`);
+		console.log("R2 setup complete.");
+		console.log();
+		console.log("Generating Wrangler types...");
+
+		await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");
+
+		console.log("Wrangler types generated.");
+
+		process.exit(0);
+	}
+
+	let bucketName = `${defaultBucketName}-${randomSuffix()}`;
+
+	while (buckets.some((item) => item.name === bucketName)) {
+		bucketName = `${defaultBucketName}-${randomSuffix()}`;
+	}
+
+	console.log();
+	console.log(`Creating bucket: ${bucketName}`);
+	console.log();
+
+	const createBucketProcess = runWrangler([
+		"r2",
+		"bucket",
+		"create",
+		bucketName,
+		"--binding",
+		bindingName,
+		"--update-config",
+	]);
+
+	const bucketExitCode = await createBucketProcess.exited;
+
+	if (bucketExitCode !== 0) {
+		throw new Error(
+			`Failed to create R2 bucket. Wrangler exited with code ${bucketExitCode}.`,
+		);
+	}
+
+	bucket = (await listR2Buckets()).find((item) => item.name === bucketName);
+
+	if (!bucket) {
+		throw new Error(
+			`Created R2 bucket "${bucketName}" but could not find it afterward.`,
+		);
+	}
+} else {
+	console.log(`Creating R2 bucket: ${defaultBucketName}`);
+	console.log();
+
+	const createBucketProcess = runWrangler([
+		"r2",
+		"bucket",
+		"create",
+		defaultBucketName,
+		"--binding",
+		bindingName,
+		"--update-config",
+	]);
+
+	const bucketExitCode = await createBucketProcess.exited;
+
+	if (bucketExitCode !== 0) {
+		throw new Error(
+			`Failed to create R2 bucket. Wrangler exited with code ${bucketExitCode}.`,
+		);
+	}
+
+	bucket = (await listR2Buckets()).find(
+		(item) => item.name === defaultBucketName,
 	);
+
+	if (!bucket) {
+		throw new Error(
+			`Created R2 bucket "${defaultBucketName}" but could not find it afterward.`,
+		);
+	}
 }
 
-const config = await loadWranglerConfig();
-
-const r2Buckets = Array.isArray(config.r2_buckets) ? config.r2_buckets : [];
-
-const binding = r2Buckets.find(
-	(item) =>
-		item &&
-		typeof item === "object" &&
-		"binding" in item &&
-		item.binding === bindingName,
-);
-
-if (
-	!binding ||
-	typeof binding !== "object" ||
-	!("bucket_name" in binding) ||
-	typeof binding.bucket_name !== "string"
-) {
-	throw new Error(
-		`No ${bindingName} bucket_name found in apps/api/wrangler.jsonc.`,
-	);
-}
+await updateR2Binding(bucket.name, bindingName);
 
 await saveGenerated({
 	r2: {
-		bucketName: binding.bucket_name,
+		bucketName: bucket.name,
 		binding: bindingName,
 	},
 });
 
 console.log();
-console.log("R2 setup complete.");
-console.log(`Bucket: ${binding.bucket_name}`);
+console.log(`Bucket: ${bucket.name}`);
 console.log(`Binding: ${bindingName}`);
+console.log("R2 setup complete.");
 console.log();
-
 console.log("Generating Wrangler types...");
 
 await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");

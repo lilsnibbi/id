@@ -57,9 +57,7 @@ function AuthorizedAppsPage() {
 			toast.success("App access revoked.");
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Unable to revoke app access.",
+				error instanceof Error ? error.message : "Unable to revoke app access.",
 			);
 		} finally {
 			setRevoking(null);
@@ -77,13 +75,10 @@ function AuthorizedAppsPage() {
 	return (
 		<div>
 			<div>
-				<h1 className="text-xl font-semibold text-white">
-					Authorized Apps
-				</h1>
+				<h1 className="text-xl font-semibold text-white">Authorized Apps</h1>
 
 				<p className="mt-1 text-sm text-zinc-500">
-					Manage applications that have access to your Maze ID
-					account.
+					Manage applications that have access to your Maze ID account.
 				</p>
 			</div>
 
@@ -99,9 +94,7 @@ function AuthorizedAppsPage() {
 						<Card key={grant.clientId} className="p-5">
 							<div className="flex items-start justify-between gap-4">
 								<div className="min-w-0">
-									<h2 className="font-medium text-white">
-										{grant.clientName}
-									</h2>
+									<h2 className="font-medium text-white">{grant.clientName}</h2>
 
 									<p className="mt-1 break-all font-mono text-xs text-zinc-600">
 										{grant.clientId}
@@ -111,13 +104,9 @@ function AuthorizedAppsPage() {
 								<Button
 									variant="secondary"
 									disabled={revoking === grant.clientId}
-									onClick={() =>
-										void handleRevoke(grant.clientId)
-									}
+									onClick={() => void handleRevoke(grant.clientId)}
 								>
-									{revoking === grant.clientId
-										? "Revoking..."
-										: "Revoke"}
+									{revoking === grant.clientId ? "Revoking..." : "Revoke"}
 								</Button>
 							</div>
 
@@ -139,8 +128,7 @@ function AuthorizedAppsPage() {
 							</div>
 
 							<p className="mt-4 text-xs text-zinc-600">
-								Authorized{" "}
-								{new Date(grant.grantedAt).toLocaleDateString()}
+								Authorized {new Date(grant.grantedAt).toLocaleDateString()}
 							</p>
 						</Card>
 					))}

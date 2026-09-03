@@ -1,11 +1,18 @@
 {
- "files": [],
- "references": [
-  {
-   "path": "./apps/dashboard/tsconfig.json"
-  },
-  {
-   "path": "./apps/dashboard/tsconfig.worker.json"
-  }
- ]
+ "compilerOptions": {
+  "target": "ESNext",
+  "module": "Preserve",
+  "moduleResolution": "Bundler",
+  "moduleDetection": "force",
+  "strict": true,
+  "noEmit": true,
+  "verbatimModuleSyntax": true,
+  "skipLibCheck": true,
+  "noFallthroughCasesInSwitch": true,
+  "noUncheckedIndexedAccess": true,
+  "noImplicitOverride": true,
+  "noUnusedLocals": false,
+  "noUnusedParameters": false,
+  "noPropertyAccessFromIndexSignature": false
+ }
 }

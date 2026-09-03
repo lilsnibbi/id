@@ -45,9 +45,7 @@ oauthAccountRoute.get("/grants", requireAuth, async (c) => {
 		})
 		.from(oauthGrants)
 		.innerJoin(oauthClients, eq(oauthClients.id, oauthGrants.clientId))
-		.where(
-			and(eq(oauthGrants.userId, user.id), isNull(oauthGrants.revokedAt)),
-		);
+		.where(and(eq(oauthGrants.userId, user.id), isNull(oauthGrants.revokedAt)));
 
 	return c.json({
 		grants: grants.map((grant) => ({
