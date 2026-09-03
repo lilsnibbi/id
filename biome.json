@@ -23,7 +23,7 @@
  },
  "overrides": [
   {
-   "includes": ["**/*.json", "**/*.yml", "**/*.yaml"],
+   "includes": ["**/*.json", "**/*.jsonc", "**/*.yml", "**/*.yaml"],
    "formatter": {
     "indentStyle": "space",
     "indentWidth": 1
@@ -32,8 +32,6 @@
   {
    "includes": ["**/*.jsonc"],
    "formatter": {
-    "indentStyle": "space",
-    "indentWidth": 1,
     "trailingCommas": "none"
    }
   }
