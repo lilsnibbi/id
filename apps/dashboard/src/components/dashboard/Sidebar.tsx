@@ -19,7 +19,7 @@ export default function Sidebar() {
 	}
 
 	return (
-		<aside className="w-64 shrink-0 border-r border-zinc-800 bg-zinc-950">
+		<aside className="flex min-h-screen w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
 			<div className="border-b border-zinc-800 px-6 py-5">
 				<div className="font-semibold text-white">Maze ID</div>
 				<div className="text-xs text-zinc-500">Identity management</div>
@@ -42,7 +42,8 @@ export default function Sidebar() {
 									className: "bg-zinc-800 text-white",
 								}}
 								inactiveProps={{
-									className: "text-zinc-400 hover:bg-zinc-900 hover:text-white",
+									className:
+										"text-zinc-400 hover:bg-zinc-900 hover:text-white",
 								}}
 								className="block rounded-md px-3 py-2 text-sm font-medium"
 							>
@@ -88,7 +89,8 @@ export default function Sidebar() {
 												exact: true,
 											}}
 											activeProps={{
-												className: "bg-zinc-800 text-white",
+												className:
+													"bg-zinc-800 text-white",
 											}}
 											inactiveProps={{
 												className:
@@ -105,6 +107,14 @@ export default function Sidebar() {
 					);
 				})}
 			</nav>
+			<div className="mt-auto min-w-0 overflow-hidden border-t border-zinc-800 px-6 py-4">
+				<div
+					className="truncate text-xs text-zinc-600"
+					title={`Build ${__APP_VERSION__}`}
+				>
+					Build {__APP_VERSION__}
+				</div>
+			</div>
 		</aside>
 	);
 }
