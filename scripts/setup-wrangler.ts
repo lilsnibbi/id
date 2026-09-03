@@ -1,3 +1,7 @@
+/**
+ * Generates Wrangler configuration files for the API and dashboard
+ * using the root environment configuration.
+ */
 import {
 	API_CONFIG_PATH,
 	DASHBOARD_CONFIG_PATH,
@@ -34,6 +38,7 @@ const apiConfig = {
 	name: apiName,
 	main: "src/index.ts",
 	compatibility_date: "2026-08-31",
+
 	vars: {
 		INSTANCE_NAME: instanceName,
 		DASHBOARD_DOMAIN: dashboardDomain,
@@ -43,19 +48,23 @@ const apiConfig = {
 		OIDC_ISSUER: oidcIssuer,
 		LOCALHOST: localhost,
 	},
+
 	secrets: {
 		required: ["ADMIN_BOOTSTRAP_SECRET", "OIDC_PRIVATE_KEY"],
 	},
+
 	...(existingApiConfig.d1_databases
 		? {
 				d1_databases: existingApiConfig.d1_databases,
 			}
 		: {}),
+
 	...(existingApiConfig.flagship
 		? {
 				flagship: existingApiConfig.flagship,
 			}
 		: {}),
+
 	workflows: [
 		{
 			binding: "LIFECYCLE_WORKFLOW",
@@ -80,11 +89,13 @@ const dashboardConfig = {
 	name: dashboardName,
 	main: "worker.ts",
 	compatibility_date: "2026-08-31",
+
 	assets: {
 		directory: "./dist",
 		binding: "ASSETS",
 		not_found_handling: "single-page-application",
 	},
+
 	...(existingDashboardConfig.flagship
 		? {
 				flagship: existingDashboardConfig.flagship,
@@ -101,6 +112,13 @@ await saveGenerated({
 	dashboardDomain,
 });
 
+/**
+ * Writes a Wrangler configuration file only when its contents change.
+ *
+ * @param file The Wrangler configuration file.
+ * @param path The absolute path to the configuration file.
+ * @param config The Wrangler configuration to write.
+ */
 async function writeConfig(
 	file: ReturnType<typeof Bun.file>,
 	path: string,
@@ -114,6 +132,5 @@ async function writeConfig(
 	}
 
 	await Bun.write(file, contents);
-
 	console.log(`Generated ${path}`);
 }
