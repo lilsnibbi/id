@@ -49,38 +49,47 @@ export class LifecycleWorkflow extends WorkflowEntrypoint<
 			return;
 		}
 
-		try {
-			await step.do("execute lifecycle action", async () => {
+		const executionSucceeded = await step.do(
+			"execute lifecycle action",
+			async () => {
 				const db = createDb(this.env.DB);
 
-				await executeLifecycleAction(db, claimedAction);
-			});
+				try {
+					await executeLifecycleAction(db, claimedAction);
 
-			const now = Date.now();
+					return true;
+				} catch (error) {
+					const now = Date.now();
+					const message =
+						error instanceof Error ? error.message : String(error);
 
-			await db
-				.update(lifecycleActions)
-				.set({
-					status: "completed",
-					executedAt: now,
-					updatedAt: now,
-				})
-				.where(eq(lifecycleActions.id, lifecycleActionId));
-		} catch (error) {
-			const now = Date.now();
-			const message =
-				error instanceof Error ? error.message : String(error);
+					await db
+						.update(lifecycleActions)
+						.set({
+							status: "failed",
+							error: message,
+							updatedAt: now,
+						})
+						.where(eq(lifecycleActions.id, lifecycleActionId));
 
-			await db
-				.update(lifecycleActions)
-				.set({
-					status: "failed",
-					error: message,
-					updatedAt: now,
-				})
-				.where(eq(lifecycleActions.id, lifecycleActionId));
+					return false;
+				}
+			},
+		);
 
-			throw error;
+		if (!executionSucceeded) {
+			return;
 		}
+
+		const now = Date.now();
+
+		await db
+			.update(lifecycleActions)
+			.set({
+				status: "completed",
+				executedAt: now,
+				updatedAt: now,
+			})
+			.where(eq(lifecycleActions.id, lifecycleActionId));
 	}
 }
