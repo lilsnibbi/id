@@ -27,7 +27,9 @@ export async function api<T>(
 	const data = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		throw new Error(data?.error ?? "Something went wrong. Please try again.");
+		throw new Error(
+			data?.error ?? "Something went wrong. Please try again.",
+		);
 	}
 
 	return data as T;
@@ -124,6 +126,9 @@ export function changePassword(currentPassword: string, newPassword: string) {
 	});
 }
 
+/**
+ * Gets WebAuthn registration options for the current authenticated user.
+ */
 export function getPasskeyRegistrationOptions() {
 	return api<PublicKeyCredentialCreationOptionsJSON>(
 		"/api/passkeys/register/options",
@@ -133,12 +138,54 @@ export function getPasskeyRegistrationOptions() {
 	);
 }
 
+/**
+ * Verifies a newly registered passkey.
+ *
+ * @param response The WebAuthn registration response.
+ * @param name The display name for the passkey.
+ */
 export function verifyPasskeyRegistration(response: unknown, name: string) {
 	return api<{ success: boolean }>("/api/passkeys/register/verify", {
 		method: "POST",
 		body: JSON.stringify({
 			response,
 			name,
+		}),
+	});
+}
+
+/**
+ * WebAuthn authentication options plus the server-side
+ * challenge record ID used to verify the authentication.
+ */
+export interface PasskeyLoginOptions extends PublicKeyCredentialRequestOptionsJSON {
+	challengeId: string;
+}
+
+/**
+ * Gets WebAuthn authentication options for usernameless passkey login.
+ *
+ * No email or username is required. The authenticator discovers
+ * the appropriate passkey.
+ */
+export function getPasskeyLoginOptions() {
+	return api<PasskeyLoginOptions>("/api/passkeys/login/options", {
+		method: "POST",
+	});
+}
+
+/**
+ * Verifies a usernameless passkey login.
+ *
+ * @param response The WebAuthn authentication response.
+ * @param challengeId The server-side authentication challenge ID.
+ */
+export function verifyPasskeyLogin(response: unknown, challengeId: string) {
+	return api<AuthResponse>("/api/passkeys/login/verify", {
+		method: "POST",
+		body: JSON.stringify({
+			response,
+			challengeId,
 		}),
 	});
 }
@@ -168,26 +215,6 @@ export function renamePasskey(id: string, name: string) {
 	return api<{ success: boolean }>(`/api/passkeys/${id}`, {
 		method: "PATCH",
 		body: JSON.stringify({ name }),
-	});
-}
-
-export function getPasskeyLoginOptions(email: string) {
-	return api<PublicKeyCredentialRequestOptionsJSON>(
-		"/api/passkeys/login/options",
-		{
-			method: "POST",
-			body: JSON.stringify({ email }),
-		},
-	);
-}
-
-export function verifyPasskeyLogin(email: string, response: unknown) {
-	return api<AuthResponse>("/api/passkeys/login/verify", {
-		method: "POST",
-		body: JSON.stringify({
-			email,
-			response,
-		}),
 	});
 }
 

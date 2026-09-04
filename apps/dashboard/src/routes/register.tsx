@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/toast/ToastProvider";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Spinner from "@/components/ui/Spinner";
+import PreAuthLayout from "@/layouts/PreAuthLayout";
 import { register } from "@/lib/api";
 
 export const Route = createFileRoute("/register")({
@@ -30,6 +30,7 @@ function RegisterPage() {
 		/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
 
 	const passwordValid = password.length >= 12;
+
 	const passwordsMatch =
 		confirmPassword.length > 0 && password === confirmPassword;
 
@@ -77,133 +78,134 @@ function RegisterPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
-			<div className="w-full max-w-md">
-				<div className="mb-8 text-center">
-					<h1 className="text-2xl font-semibold tracking-tight text-white">
+		<PreAuthLayout>
+			<div>
+				{/* Heading */}
+				<div className="mb-8">
+					<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
 						Create your account
 					</h1>
 
-					<p className="mt-2 text-sm text-zinc-500">
+					<p className="mt-2 text-sm leading-6 text-zinc-500">
 						Create your Maze ID account to get started.
 					</p>
 				</div>
 
-				<Card className="p-6">
-					<form onSubmit={handleSubmit} className="space-y-5">
-						<div>
-							<label
-								htmlFor="email"
-								className="mb-2 block text-sm font-medium text-zinc-300"
-							>
-								Email address
-							</label>
+				{/* Form */}
+				<form onSubmit={handleSubmit} className="space-y-5">
+					<div>
+						<label
+							htmlFor="email"
+							className="mb-2 block text-sm font-medium text-zinc-300"
+						>
+							Email address
+						</label>
 
-							<Input
-								id="email"
-								type="email"
-								value={email}
-								onChange={(event) =>
-									setEmail(event.target.value)
-								}
-								placeholder="you@example.com"
-								autoComplete="email"
-								autoFocus
-								disabled={loading}
-								required
-							/>
-						</div>
+						<Input
+							id="email"
+							type="email"
+							value={email}
+							onChange={(event) => setEmail(event.target.value)}
+							placeholder="you@example.com"
+							autoComplete="email"
+							autoFocus
+							disabled={loading}
+							required
+						/>
+					</div>
 
-						<div>
-							<label
-								htmlFor="password"
-								className="mb-2 block text-sm font-medium text-zinc-300"
-							>
-								Password
-							</label>
+					<div>
+						<label
+							htmlFor="password"
+							className="mb-2 block text-sm font-medium text-zinc-300"
+						>
+							Password
+						</label>
 
-							<Input
-								id="password"
-								type="password"
-								value={password}
-								onChange={(event) =>
-									setPassword(event.target.value)
-								}
-								placeholder="Create a password"
-								autoComplete="new-password"
-								disabled={loading}
-								required
-							/>
+						<Input
+							id="password"
+							type="password"
+							value={password}
+							onChange={(event) =>
+								setPassword(event.target.value)
+							}
+							placeholder="Create a password"
+							autoComplete="new-password"
+							disabled={loading}
+							required
+						/>
 
+						<p
+							className={`mt-2 text-xs ${
+								password.length === 0
+									? "text-zinc-600"
+									: passwordValid
+										? "text-emerald-400"
+										: "text-zinc-500"
+							}`}
+						>
+							{passwordValid
+								? "Password meets the minimum requirements."
+								: "Use at least 12 characters."}
+						</p>
+					</div>
+
+					<div>
+						<label
+							htmlFor="confirm-password"
+							className="mb-2 block text-sm font-medium text-zinc-300"
+						>
+							Confirm password
+						</label>
+
+						<Input
+							id="confirm-password"
+							type="password"
+							value={confirmPassword}
+							onChange={(event) =>
+								setConfirmPassword(event.target.value)
+							}
+							placeholder="Enter your password again"
+							autoComplete="new-password"
+							disabled={loading}
+							required
+						/>
+
+						{confirmPassword.length > 0 && (
 							<p
 								className={`mt-2 text-xs ${
-									passwordValid
+									passwordsMatch
 										? "text-emerald-400"
-										: "text-zinc-600"
+										: "text-red-400"
 								}`}
 							>
-								{passwordValid
-									? "Password meets the minimum requirements."
-									: "Use at least 12 characters."}
+								{passwordsMatch
+									? "Passwords match."
+									: "Passwords do not match."}
 							</p>
-						</div>
+						)}
+					</div>
 
-						<div>
-							<label
-								htmlFor="confirm-password"
-								className="mb-2 block text-sm font-medium text-zinc-300"
-							>
-								Confirm password
-							</label>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={!canSubmit}
+					>
+						Create account
+					</Button>
+				</form>
 
-							<Input
-								id="confirm-password"
-								type="password"
-								value={confirmPassword}
-								onChange={(event) =>
-									setConfirmPassword(event.target.value)
-								}
-								placeholder="Enter your password again"
-								autoComplete="new-password"
-								disabled={loading}
-								required
-							/>
-
-							{password.length > 0 && (
-								<p
-									className={`mt-2 text-xs ${
-										passwordValid
-											? "text-emerald-400"
-											: "text-red-400"
-									}`}
-								>
-									{passwordValid
-										? "Password meets the minimum requirements."
-										: "Password must be at least 12 characters."}
-								</p>
-							)}
-						</div>
-
-						<Button
-							type="submit"
-							className="w-full"
-							disabled={!canSubmit}
-						>
-							Create account
-						</Button>
-					</form>
-				</Card>
-
-				<p className="mt-6 text-center text-sm text-zinc-500">
+				{/* Login */}
+				<p className="mt-8 text-center text-sm text-zinc-500">
 					Already have an account?{" "}
 					<Link
 						to="/login"
-						className="font-medium text-zinc-300 transition-colors hover:text-white"
+						className="font-medium text-violet-400 transition-colors hover:text-violet-300"
 					>
 						Sign in
 					</Link>
 				</p>
 			</div>
-		</div>
+		</PreAuthLayout>
 	);
 }

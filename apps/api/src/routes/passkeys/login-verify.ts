@@ -1,5 +1,4 @@
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
-
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -26,36 +25,22 @@ interface CloudflareRequestProperties {
 
 loginVerify.post("/verify", async (c) => {
 	const body = await c.req.json<{
-		email?: string;
+		challengeId?: string;
 		response: AuthenticationResponseJSON;
 	}>();
 
-	const email = body.email?.trim().toLowerCase();
-
-	if (!email) {
-		return c.json({ error: "Email is required." }, 400);
+	if (!body.challengeId) {
+		return c.json(
+			{
+				error: "Authentication challenge is required.",
+			},
+			400,
+		);
 	}
 
 	const db = createDb(c.env.DB);
 
-	const userResult = await db
-		.select()
-		.from(users)
-		.where(eq(users.email, email))
-		.limit(1);
-
-	const user = userResult[0];
-
-	if (!user) {
-		return c.json(
-			{
-				error: "Unable to sign in with passkey.",
-			},
-			401,
-		);
-	}
-
-	const challenge = await getChallenge(db, user.id);
+	const challenge = await getChallenge(db, body.challengeId);
 
 	if (!challenge) {
 		return c.json(
@@ -74,8 +59,30 @@ loginVerify.post("/verify", async (c) => {
 
 	const passkey = credentialResult[0];
 
-	if (!passkey || passkey.userId !== user.id) {
-		return c.json({ error: "Invalid passkey." }, 401);
+	if (!passkey) {
+		return c.json(
+			{
+				error: "Invalid passkey.",
+			},
+			401,
+		);
+	}
+
+	const userResult = await db
+		.select()
+		.from(users)
+		.where(eq(users.id, passkey.userId))
+		.limit(1);
+
+	const user = userResult[0];
+
+	if (!user) {
+		return c.json(
+			{
+				error: "Unable to sign in with passkey.",
+			},
+			401,
+		);
 	}
 
 	try {
@@ -111,7 +118,7 @@ loginVerify.post("/verify", async (c) => {
 			})
 			.where(eq(passkeys.id, passkey.id));
 
-		await consumeChallenge(db, user.id);
+		await consumeChallenge(db, body.challengeId);
 
 		const cf = c.req.raw.cf as CloudflareRequestProperties | undefined;
 
