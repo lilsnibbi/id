@@ -195,7 +195,7 @@ function LoginPage() {
 					type="button"
 					onClick={handlePasskeyLogin}
 					disabled={submitting || passkeySubmitting}
-					className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] text-sm font-medium text-zinc-300 transition-all hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+					className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/3 text-sm font-medium text-zinc-300 transition-all hover:border-violet-400/30 hover:bg-white/6 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{passkeySubmitting ? (
 						<Spinner />
