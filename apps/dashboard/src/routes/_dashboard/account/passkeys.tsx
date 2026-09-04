@@ -197,7 +197,7 @@ function PasskeysPage() {
 
 									<Button
 										type="button"
-										variant="ghost"
+										variant="danger"
 										disabled={deleting === passkey.id}
 										onClick={() =>
 											setPasskeyToDelete(passkey)
