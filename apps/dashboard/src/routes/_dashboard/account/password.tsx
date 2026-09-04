@@ -73,7 +73,7 @@ function ChangePasswordPage() {
 				</p>
 			</div>
 
-			<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+			<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
 				<form onSubmit={handleSubmit}>
 					<div className="px-6 py-6">
 						<div className="mb-6">
@@ -163,7 +163,7 @@ function ChangePasswordPage() {
 						</div>
 					</div>
 
-					<div className="flex flex-col gap-3 border-t border-white/8 bg-white/[0.015] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+					<div className="flex flex-col gap-3 border-t border-white/8 bg-white/1.5 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 						<p className="text-xs leading-5 text-zinc-600">
 							You will be signed out of your other sessions.
 						</p>
