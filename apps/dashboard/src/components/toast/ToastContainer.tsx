@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 import Toast from "@/components/toast/Toast";
 import type { ToastData } from "@/components/toast/ToastProvider";
 
@@ -10,8 +12,8 @@ export default function ToastContainer({
 	toasts,
 	onRemove,
 }: ToastContainerProps) {
-	return (
-		<div className="pointer-events-none fixed inset-x-0 top-6 z-100 flex flex-col items-center gap-3 px-6">
+	return createPortal(
+		<div className="pointer-events-none fixed inset-x-0 top-6 z-200 flex flex-col items-center gap-3 px-6">
 			{toasts.map((toast) => (
 				<div key={toast.id} className="pointer-events-auto">
 					<Toast
@@ -22,6 +24,7 @@ export default function ToastContainer({
 					/>
 				</div>
 			))}
-		</div>
+		</div>,
+		document.body,
 	);
 }
