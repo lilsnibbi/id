@@ -20,6 +20,7 @@ registerOptions.post("/options", async (c) => {
 	}
 
 	const db = createDb(c.env.DB);
+
 	const user = await getSessionUser(db, token);
 
 	if (!user) {
@@ -36,19 +37,23 @@ registerOptions.post("/options", async (c) => {
 	const options = await generateRegistrationOptions({
 		rpName: c.env.RP_NAME,
 		rpID: c.env.RP_ID,
+
 		userName: user.email,
 		userDisplayName: user.email,
+
 		excludeCredentials: existingPasskeys.map(({ credentialId }) => ({
 			id: credentialId,
 		})),
+
 		authenticatorSelection: {
-			residentKey: "preferred",
+			residentKey: "required",
 			userVerification: "preferred",
 		},
+
 		attestationType: "none",
 	});
 
-	await createChallenge(db, user.id, options.challenge);
+	await createChallenge(db, options.challenge);
 
 	return c.json(options);
 });

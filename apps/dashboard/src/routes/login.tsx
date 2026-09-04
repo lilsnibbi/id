@@ -1,18 +1,15 @@
-import { startAuthentication } from "@simplewebauthn/browser";
-
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { Fingerprint } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/toast/ToastProvider";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
-import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
-
-import { getPasskeyLoginOptions, login, verifyPasskeyLogin } from "@/lib/api";
+import PreAuthLayout from "@/layouts/PreAuthLayout";
+import { login } from "@/lib/api";
+import { loginWithPasskey } from "@/lib/auth/passkey";
 
 export interface LoginSearch {
 	return_to?: string;
@@ -35,53 +32,40 @@ function getSafeReturnTo(value: string | undefined) {
 }
 
 function LoginPage() {
-	const { user, loading, refresh } = useAuth();
+	const { refresh } = useAuth();
 	const toast = useToast();
 	const navigate = useNavigate();
-	const search = Route.useSearch();
+
+	const { return_to } = Route.useSearch();
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [rememberMe, setRememberMe] = useState(false);
-	const [passkeyEmail, setPasskeyEmail] = useState("");
-	const [passkeyModalOpen, setPasskeyModalOpen] = useState(false);
+
 	const [submitting, setSubmitting] = useState(false);
 	const [passkeySubmitting, setPasskeySubmitting] = useState(false);
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center bg-zinc-950">
-				<Spinner size="lg" />
-			</div>
-		);
+	async function finishLogin() {
+		await refresh();
+
+		const destination = getSafeReturnTo(return_to);
+
+		if (destination) {
+			window.location.href = destination;
+			return;
+		}
+
+		await navigate({ to: "/" });
 	}
 
-	if (user) {
-		return <Navigate to="/" />;
-	}
-
-	const busy = submitting || passkeySubmitting;
-
-	async function handleLogin(
-		event: Parameters<
-			NonNullable<React.ComponentProps<"form">["onSubmit"]>
-		>[0],
-	) {
+	async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+
 		setSubmitting(true);
 
 		try {
 			await login(email, password, rememberMe);
-			await refresh();
-
-			const returnTo = getSafeReturnTo(search.return_to);
-
-			if (returnTo) {
-				window.location.href = returnTo;
-				return;
-			}
-
-			await navigate({ to: "/" });
+			await finishLogin();
 		} catch (error) {
 			toast.error(
 				error instanceof Error ? error.message : "Unable to sign in.",
@@ -91,34 +75,16 @@ function LoginPage() {
 		}
 	}
 
-	async function handlePasskeyLogin(
-		event: Parameters<
-			NonNullable<React.ComponentProps<"form">["onSubmit"]>
-		>[0],
-	) {
-		event.preventDefault();
+	async function handlePasskeyLogin() {
+		if (passkeySubmitting) {
+			return;
+		}
+
 		setPasskeySubmitting(true);
 
 		try {
-			const options = await getPasskeyLoginOptions(passkeyEmail);
-
-			const response = await startAuthentication({
-				optionsJSON: options,
-			});
-
-			await verifyPasskeyLogin(passkeyEmail, response);
-			await refresh();
-
-			setPasskeyModalOpen(false);
-
-			const returnTo = getSafeReturnTo(search.return_to);
-
-			if (returnTo) {
-				window.location.href = returnTo;
-				return;
-			}
-
-			await navigate({ to: "/" });
+			await loginWithPasskey();
+			await finishLogin();
 		} catch (error) {
 			toast.error(
 				error instanceof Error
@@ -131,22 +97,19 @@ function LoginPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-white">
-			<Card className="w-full max-w-md p-8">
+		<PreAuthLayout>
+			<div>
 				<div className="mb-8">
-					<h1 className="text-2xl font-semibold">Sign in</h1>
+					<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
+						Welcome back
+					</h1>
 
-					<p className="mt-2 text-sm text-zinc-400">
-						Sign in to Maze ID.
+					<p className="mt-2 text-sm leading-6 text-zinc-500">
+						Sign in to continue to your Maze account.
 					</p>
 				</div>
 
-				<form
-					onSubmit={(event) => {
-						void handleLogin(event);
-					}}
-					className="space-y-5"
-				>
+				<form onSubmit={handleLogin} className="space-y-5">
 					<div>
 						<label
 							htmlFor="email"
@@ -157,128 +120,107 @@ function LoginPage() {
 
 						<Input
 							id="email"
-							name="email"
 							type="email"
-							autoComplete="username"
-							required
+							autoComplete="email"
 							value={email}
 							onChange={(event) => setEmail(event.target.value)}
-							disabled={busy}
+							placeholder="you@example.com"
+							required
+							disabled={submitting || passkeySubmitting}
 						/>
 					</div>
 
 					<div>
-						<label
-							htmlFor="password"
-							className="mb-2 block text-sm font-medium text-zinc-300"
-						>
-							Password
-						</label>
+						<div className="mb-2 flex items-center justify-between">
+							<label
+								htmlFor="password"
+								className="text-sm font-medium text-zinc-300"
+							>
+								Password
+							</label>
+
+							<a
+								href="/forgot-password"
+								className="text-xs font-medium text-violet-400 transition-colors hover:text-violet-300"
+							>
+								Forgot password?
+							</a>
+						</div>
 
 						<Input
 							id="password"
-							name="password"
 							type="password"
 							autoComplete="current-password"
-							required
 							value={password}
 							onChange={(event) =>
 								setPassword(event.target.value)
 							}
-							disabled={busy}
+							placeholder="Enter your password"
+							required
+							disabled={submitting || passkeySubmitting}
 						/>
 					</div>
 
-					<label className="flex items-center gap-2 text-sm text-zinc-400">
+					<label className="flex cursor-pointer items-center gap-3 text-sm text-zinc-500">
 						<input
 							type="checkbox"
 							checked={rememberMe}
 							onChange={(event) =>
 								setRememberMe(event.target.checked)
 							}
-							disabled={busy}
+							disabled={submitting || passkeySubmitting}
+							className="h-4 w-4 rounded border-white/10 bg-zinc-900 accent-violet-500"
 						/>
 						Remember me
 					</label>
 
-					<Button type="submit" disabled={busy} className="w-full">
-						{submitting ? "Signing in..." : "Sign in"}
+					<Button
+						type="submit"
+						disabled={submitting || passkeySubmitting}
+						className="w-full"
+					>
+						{submitting ? <Spinner /> : "Sign in"}
 					</Button>
 				</form>
 
-				<div className="my-6 flex items-center gap-3">
-					<div className="h-px flex-1 bg-zinc-800" />
-					<span className="text-xs text-zinc-500">OR</span>
-					<div className="h-px flex-1 bg-zinc-800" />
+				<div className="my-7 flex items-center gap-4">
+					<div className="h-px flex-1 bg-white/8" />
+
+					<span className="text-xs text-zinc-600">OR</span>
+
+					<div className="h-px flex-1 bg-white/8" />
 				</div>
 
-				<Button
+				<button
 					type="button"
-					variant="secondary"
-					disabled={busy}
-					onClick={() => {
-						setPasskeyEmail(email);
-						setPasskeyModalOpen(true);
-					}}
-					className="w-full"
+					onClick={handlePasskeyLogin}
+					disabled={submitting || passkeySubmitting}
+					className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/3 text-sm font-medium text-zinc-300 transition-all hover:border-violet-400/30 hover:bg-white/6 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 				>
-					Sign in with passkey
-				</Button>
-			</Card>
+					{passkeySubmitting ? (
+						<Spinner />
+					) : (
+						<>
+							<Fingerprint
+								className="h-4 w-4 text-violet-400"
+								strokeWidth={1.8}
+							/>
 
-			<Modal
-				open={passkeyModalOpen}
-				title="Sign in with passkey"
-				description="Enter the email address associated with your passkey."
-				onClose={() => setPasskeyModalOpen(false)}
-			>
-				<form
-					onSubmit={(event) => {
-						void handlePasskeyLogin(event);
-					}}
-					className="space-y-5"
-				>
-					<div>
-						<label
-							htmlFor="passkey-email"
-							className="mb-2 block text-sm font-medium text-zinc-300"
-						>
-							Email
-						</label>
+							<span>Sign in with passkey</span>
+						</>
+					)}
+				</button>
 
-						<Input
-							id="passkey-email"
-							name="passkey-email"
-							type="email"
-							autoComplete="username"
-							required
-							autoFocus
-							value={passkeyEmail}
-							onChange={(event) =>
-								setPasskeyEmail(event.target.value)
-							}
-							disabled={passkeySubmitting}
-						/>
-					</div>
-
-					<div className="flex justify-end gap-3">
-						<Button
-							type="button"
-							variant="ghost"
-							disabled={passkeySubmitting}
-							onClick={() => setPasskeyModalOpen(false)}
-						>
-							Cancel
-						</Button>
-
-						<Button type="submit" disabled={passkeySubmitting}>
-							{passkeySubmitting
-								? "Authenticating..."
-								: "Continue"}
-						</Button>
-					</div>
-				</form>
-			</Modal>
-		</div>
+				<p className="mt-8 text-center text-sm text-zinc-500">
+					Don't have an account?{" "}
+					<a
+						href="/register"
+						className="font-medium text-violet-400 transition-colors hover:text-violet-300"
+					>
+						Create one
+					</a>
+				</p>
+			</div>
+		</PreAuthLayout>
 	);
 }

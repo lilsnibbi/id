@@ -32,59 +32,55 @@ export function base64ToUint8Array(value: string) {
 }
 
 /**
- * Creates a passkey challenge for a user.
+ * Creates a passkey challenge.
  *
- * Any existing challenge for the user is removed before the new challenge
- * is stored.
+ * The challenge is not associated with a user because passkey
+ * authentication can be usernameless. The user is identified
+ * after the authenticator returns a credential.
  *
  * @param db The database connection.
- * @param userId The ID of the user the challenge belongs to.
  * @param challenge The challenge value.
- * @returns The challenge and its expiration timestamp.
+ * @returns The challenge ID, challenge value, and expiration timestamp.
  */
 export async function createChallenge(
 	db: ReturnType<typeof createDb>,
-	userId: string,
 	challenge: string,
 ) {
 	const now = Date.now();
 	const expiresAt = now + CHALLENGE_DURATION;
-
-	await db
-		.delete(passkeyChallenges)
-		.where(eq(passkeyChallenges.userId, userId));
+	const id = crypto.randomUUID();
 
 	await db.insert(passkeyChallenges).values({
-		id: crypto.randomUUID(),
-		userId,
+		id,
 		challenge,
 		expiresAt,
 		createdAt: now,
 	});
 
 	return {
+		id,
 		challenge,
 		expiresAt,
 	};
 }
 
 /**
- * Retrieves the active passkey challenge for a user.
+ * Retrieves an active passkey challenge by its ID.
  *
  * Expired challenges are deleted before returning.
  *
  * @param db The database connection.
- * @param userId The ID of the user the challenge belongs to.
+ * @param id The challenge ID.
  * @returns The active challenge, or `null` if none exists or it has expired.
  */
 export async function getChallenge(
 	db: ReturnType<typeof createDb>,
-	userId: string,
+	id: string,
 ) {
 	const result = await db
 		.select()
 		.from(passkeyChallenges)
-		.where(eq(passkeyChallenges.userId, userId))
+		.where(eq(passkeyChallenges.id, id))
 		.limit(1);
 
 	const challenge = result[0];
@@ -105,17 +101,19 @@ export async function getChallenge(
 }
 
 /**
- * Retrieves and consumes the active passkey challenge for a user.
+ * Retrieves and consumes an active passkey challenge.
+ *
+ * The challenge is deleted after retrieval so it cannot be reused.
  *
  * @param db The database connection.
- * @param userId The ID of the user the challenge belongs to.
+ * @param id The challenge ID.
  * @returns The consumed challenge, or `null` if none exists or it has expired.
  */
 export async function consumeChallenge(
 	db: ReturnType<typeof createDb>,
-	userId: string,
+	id: string,
 ) {
-	const challenge = await getChallenge(db, userId);
+	const challenge = await getChallenge(db, id);
 
 	if (!challenge) {
 		return null;

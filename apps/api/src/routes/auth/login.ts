@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
+
 import { createDb } from "../../db";
 import { users } from "../../db/schema";
 import { setSessionCookie } from "../../lib/cookie";
@@ -65,8 +66,7 @@ login.post("/", async (c) => {
 		);
 	}
 
-	// If this browser already has a valid session
-	// for this account, reuse it.
+	// Reuse an existing valid session for this account.
 	const existingToken = getCookie(c, "session");
 
 	if (existingToken) {

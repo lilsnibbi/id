@@ -19,20 +19,38 @@ export default function Modal({
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
 			<div
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="modal-title"
-				className="w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-900 p-6 text-white shadow-xl"
+				className="
+					w-full
+					max-w-md
+					rounded-2xl
+					border
+					border-white/10
+					bg-zinc-950/95
+					p-7
+					text-white
+					shadow-2xl
+					shadow-black/50
+					ring-1
+					ring-violet-500/5
+				"
 			>
-				<div className="mb-6">
-					<h2 id="modal-title" className="text-lg font-semibold">
+				<div className="mb-7">
+					<h2
+						id="modal-title"
+						className="text-xl font-semibold tracking-tight"
+					>
 						{title}
 					</h2>
 
 					{description && (
-						<p className="mt-2 text-sm text-zinc-400">{description}</p>
+						<p className="mt-2 text-sm leading-6 text-zinc-500">
+							{description}
+						</p>
 					)}
 				</div>
 
