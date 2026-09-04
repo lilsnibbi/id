@@ -22,6 +22,7 @@ approveRoute.post("/", async (c) => {
 	const body = await c.req.json<{
 		client_id: string;
 		redirect_uri: string;
+		response_type: string;
 		scope: string;
 		state?: string;
 		nonce?: string;
@@ -32,6 +33,7 @@ approveRoute.post("/", async (c) => {
 	if (
 		!body.client_id ||
 		!body.redirect_uri ||
+		!body.response_type ||
 		!body.scope ||
 		!body.code_challenge ||
 		!body.code_challenge_method
@@ -39,6 +41,18 @@ approveRoute.post("/", async (c) => {
 		return c.json(
 			{
 				error: "invalid_request",
+				error_description: "Missing required parameters.",
+			},
+			400,
+		);
+	}
+
+	if (body.response_type !== "code") {
+		return c.json(
+			{
+				error: "unsupported_response_type",
+				error_description:
+					"Only the authorization code flow is supported.",
 			},
 			400,
 		);
@@ -49,6 +63,17 @@ approveRoute.post("/", async (c) => {
 			{
 				error: "invalid_request",
 				error_description: "Only S256 PKCE is supported.",
+			},
+			400,
+		);
+	}
+
+	// RFC 7636 S256 code challenges are base64url-encoded SHA-256 hashes.
+	if (!/^[A-Za-z0-9_-]{43}$/.test(body.code_challenge)) {
+		return c.json(
+			{
+				error: "invalid_request",
+				error_description: "Invalid PKCE code challenge.",
 			},
 			400,
 		);
@@ -94,7 +119,8 @@ approveRoute.post("/", async (c) => {
 		return c.json(
 			{
 				error: "invalid_scope",
-				error_description: "One or more requested scopes are not allowed.",
+				error_description:
+					"One or more requested scopes are not allowed.",
 			},
 			400,
 		);

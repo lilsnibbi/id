@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useToast } from "@/components/toast/ToastProvider";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
@@ -80,7 +79,14 @@ function PasskeysPage() {
 
 			toast.success("Passkey registered.");
 		} catch (error) {
-			if (error instanceof Error && error.name === "NotAllowedError") {
+			if (
+				error instanceof Error &&
+				(error.name === "NotAllowedError" ||
+					error.message.toLowerCase().includes("not allowed"))
+			) {
+				setRegisterModalOpen(false);
+				setPasskeyName("");
+				toast.error("Passkey registration was cancelled.");
 				return;
 			}
 
@@ -111,6 +117,7 @@ function PasskeysPage() {
 			);
 
 			setPasskeyToDelete(null);
+
 			toast.success("Passkey removed.");
 		} catch (error) {
 			toast.error(
@@ -125,88 +132,123 @@ function PasskeysPage() {
 
 	if (loading) {
 		return (
-			<div className="flex justify-center py-12">
+			<div className="flex justify-center py-16">
 				<Spinner size="lg" />
 			</div>
 		);
 	}
 
 	return (
-		<div>
-			<div className="flex items-start justify-between gap-4">
+		<div className="max-w-2xl">
+			<div className="mb-8 flex items-start justify-between gap-4">
 				<div>
-					<h1 className="text-xl font-semibold text-white">
+					<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
 						Passkeys
 					</h1>
 
-					<p className="mt-1 text-sm text-zinc-500">
+					<p className="mt-2 text-sm leading-6 text-zinc-500">
 						Manage the passkeys you use to sign in to your Maze ID
 						account.
 					</p>
 				</div>
 
-				<Button onClick={() => setRegisterModalOpen(true)}>
+				<Button
+					type="button"
+					disabled={registering}
+					onClick={() => setRegisterModalOpen(true)}
+					className="shrink-0"
+				>
 					Register passkey
 				</Button>
 			</div>
 
 			{passkeys.length === 0 ? (
-				<Card className="mt-6 p-6">
+				<div className="rounded-2xl border border-white/10 bg-white/2 px-6 py-6">
 					<p className="text-sm text-zinc-500">
 						You have not registered any passkeys.
 					</p>
-				</Card>
+				</div>
 			) : (
-				<div className="mt-6 space-y-4">
-					{passkeys.map((passkey) => (
-						<Card key={passkey.id} className="p-5">
-							<div className="flex items-start justify-between gap-4">
-								<div className="min-w-0">
-									<h2 className="font-medium text-white">
-										{passkey.name ?? "Unnamed passkey"}
-									</h2>
+				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
+					<div className="border-b border-white/8 px-6 py-5">
+						<h2 className="text-sm font-medium text-white">
+							Your passkeys
+						</h2>
 
-									<p className="mt-1 break-all font-mono text-xs text-zinc-600">
-										{passkey.id}
-									</p>
+						<p className="mt-1 text-sm text-zinc-500">
+							Use a passkey for fast and secure sign-in without a
+							password.
+						</p>
+					</div>
+
+					<div className="divide-y divide-white/8">
+						{passkeys.map((passkey) => (
+							<div key={passkey.id} className="px-6 py-6">
+								<div className="flex items-start justify-between gap-5">
+									<div className="min-w-0">
+										<h2 className="truncate text-base font-medium text-white">
+											{passkey.name ?? "Unnamed passkey"}
+										</h2>
+
+										<p className="mt-1 break-all font-mono text-xs text-zinc-600">
+											{passkey.id}
+										</p>
+									</div>
+
+									<Button
+										type="button"
+										variant="danger"
+										disabled={deleting === passkey.id}
+										onClick={() =>
+											setPasskeyToDelete(passkey)
+										}
+										className="shrink-0"
+									>
+										Remove
+									</Button>
 								</div>
 
-								<Button
-									variant="secondary"
-									disabled={deleting === passkey.id}
-									onClick={() => setPasskeyToDelete(passkey)}
-								>
-									Remove
-								</Button>
+								<div className="mt-5 grid gap-4 sm:grid-cols-2">
+									<div>
+										<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
+											Created
+										</p>
+
+										<p className="mt-2 text-sm text-zinc-400">
+											{new Date(
+												passkey.createdAt,
+											).toLocaleDateString(undefined, {
+												month: "long",
+												day: "numeric",
+												year: "numeric",
+											})}
+										</p>
+									</div>
+
+									<div>
+										<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
+											Last used
+										</p>
+
+										<p className="mt-2 text-sm text-zinc-400">
+											{passkey.lastUsedAt
+												? new Date(
+														passkey.lastUsedAt,
+													).toLocaleDateString(
+														undefined,
+														{
+															month: "long",
+															day: "numeric",
+															year: "numeric",
+														},
+													)
+												: "Never"}
+										</p>
+									</div>
+								</div>
 							</div>
-
-							<div className="mt-5">
-								<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
-									Created
-								</p>
-
-								<p className="mt-2 text-sm text-zinc-400">
-									{new Date(
-										passkey.createdAt,
-									).toLocaleDateString()}
-								</p>
-							</div>
-
-							<div className="mt-4">
-								<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
-									Last used
-								</p>
-
-								<p className="mt-2 text-sm text-zinc-400">
-									{passkey.lastUsedAt
-										? new Date(
-												passkey.lastUsedAt,
-											).toLocaleDateString()
-										: "Never"}
-								</p>
-							</div>
-						</Card>
-					))}
+						))}
+					</div>
 				</div>
 			)}
 
@@ -293,7 +335,7 @@ function PasskeysPage() {
 
 					<Button
 						type="button"
-						variant="secondary"
+						variant="danger"
 						disabled={deleting !== null}
 						onClick={() => void handleDelete()}
 					>

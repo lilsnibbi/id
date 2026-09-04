@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 
 import type { createDb } from "../db";
 import { passkeyChallenges } from "../db/schema";
@@ -25,7 +25,7 @@ export function arrayBufferToBase64(buffer: Uint8Array) {
  * Decodes a Base64 string into a byte array.
  *
  * @param value The Base64-encoded value to decode.
- * @returns The decoded bytes.
+ * @returns The decoded byte array.
  */
 export function base64ToUint8Array(value: string) {
 	return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
@@ -34,24 +34,33 @@ export function base64ToUint8Array(value: string) {
 /**
  * Creates a passkey challenge.
  *
- * The challenge is not associated with a user because passkey
- * authentication can be usernameless. The user is identified
- * after the authenticator returns a credential.
+ * Registration challenges are associated with a user because the user
+ * is already authenticated. Authentication challenges are userless and
+ * should be created with a null user ID.
  *
  * @param db The database connection.
- * @param challenge The challenge value.
- * @returns The challenge ID, challenge value, and expiration timestamp.
+ * @param userId The ID of the user, or null for userless authentication.
+ * @param challenge The WebAuthn challenge value.
+ * @returns The created challenge and its expiration timestamp.
  */
 export async function createChallenge(
 	db: ReturnType<typeof createDb>,
+	userId: string | null,
 	challenge: string,
 ) {
 	const now = Date.now();
 	const expiresAt = now + CHALLENGE_DURATION;
 	const id = crypto.randomUUID();
 
+	if (userId) {
+		await db
+			.delete(passkeyChallenges)
+			.where(eq(passkeyChallenges.userId, userId));
+	}
+
 	await db.insert(passkeyChallenges).values({
 		id,
+		userId,
 		challenge,
 		expiresAt,
 		createdAt: now,
@@ -65,55 +74,77 @@ export async function createChallenge(
 }
 
 /**
- * Retrieves an active passkey challenge by its ID.
+ * Retrieves the active passkey challenge for a user.
  *
- * Expired challenges are deleted before returning.
+ * This is used for authenticated passkey registration, where the
+ * challenge is associated with the current user.
+ *
+ * @param db The database connection.
+ * @param userId The ID of the user who owns the challenge.
+ * @returns The active challenge, or null if none exists or it has expired.
+ */
+export async function getChallenge(
+	db: ReturnType<typeof createDb>,
+	userId: string,
+) {
+	const result = await db
+		.select()
+		.from(passkeyChallenges)
+		.where(
+			and(
+				eq(passkeyChallenges.userId, userId),
+				gt(passkeyChallenges.expiresAt, Date.now()),
+			),
+		)
+		.orderBy(passkeyChallenges.createdAt)
+		.limit(1);
+
+	return result[0] ?? null;
+}
+
+/**
+ * Retrieves an active userless passkey authentication challenge by ID.
+ *
+ * This is used during passkey login because the user may not be known
+ * until the authenticator returns a credential.
  *
  * @param db The database connection.
  * @param id The challenge ID.
- * @returns The active challenge, or `null` if none exists or it has expired.
+ * @returns The active authentication challenge, or null if it does not exist or has expired.
  */
-export async function getChallenge(
+export async function getChallengeById(
 	db: ReturnType<typeof createDb>,
 	id: string,
 ) {
 	const result = await db
 		.select()
 		.from(passkeyChallenges)
-		.where(eq(passkeyChallenges.id, id))
+		.where(
+			and(
+				eq(passkeyChallenges.id, id),
+				isNull(passkeyChallenges.userId),
+				gt(passkeyChallenges.expiresAt, Date.now()),
+			),
+		)
 		.limit(1);
 
-	const challenge = result[0];
-
-	if (!challenge) {
-		return null;
-	}
-
-	if (challenge.expiresAt <= Date.now()) {
-		await db
-			.delete(passkeyChallenges)
-			.where(eq(passkeyChallenges.id, challenge.id));
-
-		return null;
-	}
-
-	return challenge;
+	return result[0] ?? null;
 }
 
 /**
- * Retrieves and consumes an active passkey challenge.
+ * Consumes a passkey registration challenge for a user.
  *
  * The challenge is deleted after retrieval so it cannot be reused.
  *
  * @param db The database connection.
- * @param id The challenge ID.
- * @returns The consumed challenge, or `null` if none exists or it has expired.
+ * @param userId The ID of the user who owns the challenge.
+ * @returns The consumed challenge, or null if none exists.
  */
 export async function consumeChallenge(
 	db: ReturnType<typeof createDb>,
-	id: string,
+	userId: string,
 ) {
-	const challenge = await getChallenge(db, id);
+	const challenge = await getChallenge(db, userId);
 
 	if (!challenge) {
 		return null;
@@ -121,7 +152,44 @@ export async function consumeChallenge(
 
 	await db
 		.delete(passkeyChallenges)
-		.where(eq(passkeyChallenges.id, challenge.id));
+		.where(
+			and(
+				eq(passkeyChallenges.id, challenge.id),
+				eq(passkeyChallenges.userId, userId),
+			),
+		);
+
+	return challenge;
+}
+
+/**
+ * Consumes a userless passkey authentication challenge by ID.
+ *
+ * The challenge must not be associated with a user because the user
+ * is identified from the credential returned by the authenticator.
+ *
+ * @param db The database connection.
+ * @param id The challenge ID.
+ * @returns The consumed challenge, or null if none exists.
+ */
+export async function consumeChallengeById(
+	db: ReturnType<typeof createDb>,
+	id: string,
+) {
+	const challenge = await getChallengeById(db, id);
+
+	if (!challenge) {
+		return null;
+	}
+
+	await db
+		.delete(passkeyChallenges)
+		.where(
+			and(
+				eq(passkeyChallenges.id, challenge.id),
+				isNull(passkeyChallenges.userId),
+			),
+		);
 
 	return challenge;
 }

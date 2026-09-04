@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/toast/ToastProvider";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Spinner from "@/components/ui/Spinner";
 import {
@@ -31,7 +30,6 @@ const ALLOWED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 function ProfilePage() {
 	const { user, refresh } = useAuth();
 	const toast = useToast();
-
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const [displayName, setDisplayName] = useState("");
@@ -93,7 +91,6 @@ function ProfilePage() {
 		>[0],
 	) {
 		const file = event.target.files?.[0];
-
 		event.target.value = "";
 
 		if (!file) {
@@ -146,7 +143,9 @@ function ProfilePage() {
 	}
 
 	async function handleSubmit(
-		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
+		event: Parameters<
+			NonNullable<React.ComponentProps<"form">["onSubmit"]>
+		>[0],
 	) {
 		event.preventDefault();
 
@@ -172,83 +171,96 @@ function ProfilePage() {
 	}
 
 	return (
-		<div className="max-w-3xl">
+		<div className="max-w-2xl">
 			<div className="mb-8">
-				<h1 className="text-2xl font-semibold tracking-tight text-white">
+				<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
 					Profile
 				</h1>
-				<p className="mt-1 text-sm text-zinc-500">
-					Your personal account information.
+
+				<p className="mt-2 text-sm leading-6 text-zinc-500">
+					Manage your personal account information.
 				</p>
 			</div>
 
-			<Card className="overflow-hidden p-0">
-				<div className="flex items-center gap-5 border-b border-zinc-800 px-6 py-6">
-					<div className="relative shrink-0">
-						<div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-lg font-semibold text-zinc-200 ring-1 ring-zinc-700">
-							{user.profileImageKey ? (
-								<img
-									src={`${getProfileAvatarUrl()}?v=${avatarVersion ?? 0}`}
-									alt=""
-									className="h-full w-full object-cover"
-								/>
-							) : (
-								initials
-							)}
+			<div className="rounded-2xl border border-white/10 bg-white/2">
+				{/* Profile header */}
+				<div className="border-b border-white/8 px-6 py-6">
+					<div className="flex items-center gap-4">
+						<div className="relative shrink-0">
+							<div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-900 text-lg font-semibold text-zinc-300 ring-1 ring-violet-400/10">
+								{user.profileImageKey ? (
+									<img
+										src={`${getProfileAvatarUrl()}?v=${avatarVersion ?? 0}`}
+										alt=""
+										className="h-full w-full object-cover"
+									/>
+								) : (
+									initials
+								)}
+							</div>
 						</div>
-					</div>
 
-					<div className="min-w-0 flex-1">
-						<h2 className="truncate text-lg font-medium text-white">
-							{user.displayName || "Unnamed account"}
-						</h2>
+						<div className="min-w-0 flex-1">
+							<h2 className="truncate text-base font-medium text-white">
+								{user.displayName || "Unnamed account"}
+							</h2>
 
-						<p className="mt-1 truncate text-sm text-zinc-500">{user.email}</p>
+							<p className="mt-1 truncate text-sm text-zinc-500">
+								{user.email}
+							</p>
 
-						<div className="mt-3 flex items-center gap-2">
-							<Button
-								type="button"
-								variant="secondary"
-								onClick={openFilePicker}
-								disabled={avatarSaving}
-							>
-								{avatarSaving ? "Uploading..." : "Change photo"}
-							</Button>
-
-							{user.profileImageKey && (
+							<div className="mt-3 flex items-center gap-2">
 								<Button
 									type="button"
-									variant="ghost"
-									onClick={() => void handleRemoveAvatar()}
+									variant="secondary"
+									onClick={openFilePicker}
 									disabled={avatarSaving}
 								>
-									Remove
+									{avatarSaving
+										? "Uploading..."
+										: "Change photo"}
 								</Button>
-							)}
+
+								{user.profileImageKey && (
+									<Button
+										type="button"
+										variant="ghost"
+										onClick={() =>
+											void handleRemoveAvatar()
+										}
+										disabled={avatarSaving}
+									>
+										Remove
+									</Button>
+								)}
+							</div>
+
+							<input
+								ref={fileInputRef}
+								type="file"
+								accept="image/jpeg,image/png,image/webp"
+								onChange={handleAvatarChange}
+								className="hidden"
+							/>
+
+							<p className="mt-2 text-xs text-zinc-600">
+								JPEG, PNG, or WebP. Maximum 5 MB.
+							</p>
 						</div>
-
-						<input
-							ref={fileInputRef}
-							type="file"
-							accept="image/jpeg,image/png,image/webp"
-							onChange={handleAvatarChange}
-							className="hidden"
-						/>
-
-						<p className="mt-2 text-xs text-zinc-600">
-							JPEG, PNG, or WebP. Maximum 5 MB.
-						</p>
 					</div>
 				</div>
 
 				<form onSubmit={handleSubmit}>
+					{/* Personal information */}
 					<div className="px-6 py-6">
 						<div className="mb-6">
 							<h2 className="text-sm font-medium text-white">
 								Personal information
 							</h2>
-							<p className="mt-1 text-sm text-zinc-500">
-								Update the information associated with your account.
+
+							<p className="mt-1 text-sm leading-6 text-zinc-500">
+								Update the information associated with your
+								account.
 							</p>
 						</div>
 
@@ -264,7 +276,9 @@ function ProfilePage() {
 								<Input
 									id="display-name"
 									value={displayName}
-									onChange={(event) => setDisplayName(event.target.value)}
+									onChange={(event) =>
+										setDisplayName(event.target.value)
+									}
 									placeholder="Your name"
 									autoComplete="name"
 									maxLength={100}
@@ -272,7 +286,11 @@ function ProfilePage() {
 								/>
 
 								<div className="mt-2 flex justify-between text-xs text-zinc-600">
-									<span>This name will be shown throughout Maze ID.</span>
+									<span>
+										This name will be shown throughout Maze
+										ID.
+									</span>
+
 									<span>{displayName.length}/100</span>
 								</div>
 							</div>
@@ -285,12 +303,19 @@ function ProfilePage() {
 									Email address
 								</label>
 
-								<Input id="email" value={user.email} disabled readOnly />
+								<Input
+									id="email"
+									value={user.email}
+									disabled
+									readOnly
+								/>
 
 								<div className="mt-2 flex items-center gap-2 text-xs">
 									<span
 										className={`h-1.5 w-1.5 rounded-full ${
-											user.emailVerifiedAt ? "bg-emerald-400" : "bg-amber-400"
+											user.emailVerifiedAt
+												? "bg-emerald-400"
+												: "bg-amber-400"
 										}`}
 									/>
 
@@ -304,14 +329,19 @@ function ProfilePage() {
 						</div>
 					</div>
 
-					<div className="border-t border-zinc-800 px-6 py-5">
+					{/* Account */}
+					<div className="border-t border-white/8 px-6 py-6">
 						<div className="flex items-center justify-between gap-6">
 							<div>
-								<h2 className="text-sm font-medium text-white">Account</h2>
+								<h2 className="text-sm font-medium text-white">
+									Account
+								</h2>
 
 								<p className="mt-1 text-sm text-zinc-500">
 									Created on{" "}
-									{new Date(user.createdAt).toLocaleDateString(undefined, {
+									{new Date(
+										user.createdAt,
+									).toLocaleDateString(undefined, {
 										month: "long",
 										day: "numeric",
 										year: "numeric",
@@ -320,14 +350,15 @@ function ProfilePage() {
 							</div>
 
 							{user.isAdmin && (
-								<span className="shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
+								<span className="shrink-0 rounded-full border border-violet-400/20 bg-violet-400/10 px-2.5 py-1 text-xs font-medium text-violet-300">
 									Administrator
 								</span>
 							)}
 						</div>
 					</div>
 
-					<div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-950/40 px-6 py-4">
+					{/* Save bar */}
+					<div className="flex items-center justify-between gap-6 border-t border-white/8 bg-white/1.5 px-6 py-4">
 						<p className="text-xs text-zinc-600">
 							{isDirty
 								? "You have unsaved changes."
@@ -339,7 +370,7 @@ function ProfilePage() {
 						</Button>
 					</div>
 				</form>
-			</Card>
+			</div>
 		</div>
 	);
 }

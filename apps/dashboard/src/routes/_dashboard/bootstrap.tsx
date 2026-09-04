@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_dashboard/bootstrap")({
 		navigation: {
 			label: "Bootstrap",
 			order: 30,
-			adminOnly: true,
+			hidden: true,
 		},
 	},
 	component: BootstrapPage,

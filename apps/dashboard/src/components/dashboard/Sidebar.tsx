@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { Link } from "@tanstack/react-router";
 
 import { getNavigationItems } from "@/lib/navigation";
@@ -10,7 +9,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isAdmin }: SidebarProps) {
-	const items = getNavigationItems(routeTree, isAdmin);
+	const items = getNavigationItems(routeTree, isAdmin).filter(
+		(item) => !item.hidden,
+	);
 
 	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -22,17 +23,19 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 	}
 
 	return (
-		<aside className="flex min-h-screen w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950">
-			<div className="border-b border-zinc-800 px-6 py-5">
-				<div className="font-semibold text-white">Maze ID</div>
-
-				<div className="text-xs text-zinc-500">Identity management</div>
+		<aside className="flex min-h-screen w-60 shrink-0 flex-col bg-zinc-950">
+			<div className="px-5 pb-6 pt-7">
+				<div className="text-sm font-semibold tracking-[-0.01em] text-zinc-200">
+					Maze ID
+				</div>
 			</div>
 
-			<nav className="space-y-1 p-3">
+			<nav className="flex-1 space-y-1 px-3">
 				{items.map((item) => {
-					const hasChildren = item.children.length > 0;
-
+					const children = item.children.filter(
+						(child) => !child.hidden,
+					);
+					const hasChildren = children.length > 0;
 					const isCollapsed = collapsed[item.to] ?? false;
 
 					if (!hasChildren) {
@@ -44,15 +47,27 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 									exact: true,
 								}}
 								activeProps={{
-									className: "bg-zinc-800 text-white",
+									className:
+										"bg-violet-500/[0.08] text-zinc-100",
 								}}
 								inactiveProps={{
 									className:
-										"text-zinc-400 hover:bg-zinc-900 hover:text-white",
+										"text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-200",
 								}}
-								className="block rounded-md px-3 py-2 text-sm font-medium"
+								className="flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors"
 							>
-								{item.label}
+								{({ isActive }) => (
+									<>
+										<span
+											className={`mr-2 h-1.5 w-1.5 rounded-full transition-opacity ${
+												isActive
+													? "bg-violet-400 opacity-100"
+													: "opacity-0"
+											}`}
+										/>
+										{item.label}
+									</>
+								)}
 							</Link>
 						);
 					}
@@ -62,7 +77,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 							<button
 								type="button"
 								onClick={() => toggleGroup(item.to)}
-								className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-white"
+								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/3 hover:text-zinc-200"
 							>
 								<span>{item.label}</span>
 
@@ -85,8 +100,8 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 							</button>
 
 							{!isCollapsed && (
-								<div className="ml-3 mt-1 space-y-1 border-l border-zinc-800 pl-3">
-									{item.children.map((child) => (
+								<div className="ml-3 mt-1 space-y-0.5 border-l border-white/6 pl-3">
+									{children.map((child) => (
 										<Link
 											key={child.to}
 											to={child.to}
@@ -95,15 +110,26 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 											}}
 											activeProps={{
 												className:
-													"bg-zinc-800 text-white",
+													"bg-violet-500/[0.08] text-zinc-200",
 											}}
 											inactiveProps={{
 												className:
-													"text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200",
+													"text-zinc-600 hover:bg-white/[0.03] hover:text-zinc-300",
 											}}
-											className="block rounded-md px-3 py-1.5 text-sm"
+											className="block rounded-md px-3 py-1.5 text-sm transition-colors"
 										>
-											{child.label}
+											{({ isActive }) => (
+												<div className="flex items-center">
+													<span
+														className={`mr-2 h-1.5 w-1.5 rounded-full transition-opacity ${
+															isActive
+																? "bg-violet-400 opacity-100"
+																: "opacity-0"
+														}`}
+													/>
+													{child.label}
+												</div>
+											)}
 										</Link>
 									))}
 								</div>
@@ -113,9 +139,9 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 				})}
 			</nav>
 
-			<div className="mt-auto min-w-0 overflow-hidden border-t border-zinc-800 px-6 py-4">
+			<div className="px-5 pb-5 pt-6">
 				<div
-					className="truncate text-xs text-zinc-600"
+					className="truncate text-[11px] text-zinc-700"
 					title={`Build ${__APP_VERSION__}`}
 				>
 					Build {__APP_VERSION__}

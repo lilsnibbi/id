@@ -53,7 +53,7 @@ registerOptions.post("/options", async (c) => {
 		attestationType: "none",
 	});
 
-	await createChallenge(db, options.challenge);
+	await createChallenge(db, user.id, options.challenge);
 
 	return c.json(options);
 });
