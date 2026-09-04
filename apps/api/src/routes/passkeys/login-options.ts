@@ -16,7 +16,7 @@ loginOptions.post("/options", async (c) => {
 		userVerification: "preferred",
 	});
 
-	const challenge = await createChallenge(db, options.challenge);
+	const challenge = await createChallenge(db, null, options.challenge);
 
 	return c.json({
 		...options,
