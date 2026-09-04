@@ -86,13 +86,13 @@ function AuthorizedAppsPage() {
 			</div>
 
 			{grants.length === 0 ? (
-				<div className="rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-6">
+				<div className="rounded-2xl border border-white/10 bg-white/2 px-6 py-6">
 					<p className="text-sm text-zinc-500">
 						You have not authorized any applications.
 					</p>
 				</div>
 			) : (
-				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
 					<div className="border-b border-white/8 px-6 py-5">
 						<h2 className="text-sm font-medium text-white">
 							Connected applications
@@ -142,7 +142,7 @@ function AuthorizedAppsPage() {
 										{grant.scopes.map((scope) => (
 											<span
 												key={scope}
-												className="rounded-lg border border-violet-400/10 bg-violet-400/[0.06] px-2.5 py-1 text-xs font-medium text-violet-300"
+												className="rounded-lg border border-violet-400/10 bg-violet-400/6 px-2.5 py-1 text-xs font-medium text-violet-300"
 											>
 												{scope}
 											</span>

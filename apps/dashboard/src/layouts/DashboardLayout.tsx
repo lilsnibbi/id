@@ -19,11 +19,11 @@ export default function DashboardLayout() {
 					aria-hidden="true"
 					className="pointer-events-none absolute inset-0"
 				>
-					<div className="absolute left-1/2 top-[-20%] h-[60%] w-[60%] -translate-x-1/2 rounded-full bg-violet-500/[0.025] blur-[160px]" />
+					<div className="absolute left-1/2 top-[-20%] h-[60%] w-[60%] -translate-x-1/2 rounded-full bg-violet-500/2.5 blur-[160px]" />
 				</div>
 
 				{/* Sidebar */}
-				<aside className="relative z-20 hidden w-60 shrink-0 border-r border-white/[0.06] bg-zinc-950 lg:block">
+				<aside className="relative z-20 hidden w-60 shrink-0 border-r border-white/6 bg-zinc-950 lg:block">
 					<Sidebar isAdmin={user.isAdmin} />
 				</aside>
 

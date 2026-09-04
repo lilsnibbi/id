@@ -140,7 +140,7 @@ function AuthorizePage() {
 	if (missing) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-				<div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+				<div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/2 p-6">
 					<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
 						Invalid authorization request
 					</h1>
@@ -170,7 +170,7 @@ function AuthorizePage() {
 					</p>
 				</div>
 
-				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
 					<div className="border-b border-white/8 px-6 py-6">
 						<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
 							Application
@@ -207,7 +207,7 @@ function AuthorizePage() {
 							{scopes.map((scope) => (
 								<div
 									key={scope}
-									className="flex items-center rounded-xl border border-violet-400/10 bg-violet-400/[0.06] px-3.5 py-3 text-sm font-medium text-violet-300"
+									className="flex items-center rounded-xl border border-violet-400/10 bg-violet-400/6 px-3.5 py-3 text-sm font-medium text-violet-300"
 								>
 									{scope}
 								</div>
@@ -215,13 +215,13 @@ function AuthorizePage() {
 						</div>
 
 						{error && (
-							<div className="mt-5 rounded-xl border border-red-400/15 bg-red-400/[0.06] px-4 py-3 text-sm leading-6 text-red-300">
+							<div className="mt-5 rounded-xl border border-red-400/15 bg-red-400/6 px-4 py-3 text-sm leading-6 text-red-300">
 								{error}
 							</div>
 						)}
 					</div>
 
-					<div className="flex flex-col-reverse gap-3 border-t border-white/8 bg-white/[0.015] px-6 py-5 sm:flex-row sm:justify-end">
+					<div className="flex flex-col-reverse gap-3 border-t border-white/8 bg-white/1.5 px-6 py-5 sm:flex-row sm:justify-end">
 						<Button
 							type="button"
 							variant="secondary"

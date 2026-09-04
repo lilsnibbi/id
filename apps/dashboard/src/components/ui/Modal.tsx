@@ -21,7 +21,7 @@ export default function Modal({
 	}
 
 	return createPortal(
-		<div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+		<div className="fixed inset-0 z-100 flex items-center justify-center px-4">
 			<button
 				type="button"
 				aria-label="Close modal"

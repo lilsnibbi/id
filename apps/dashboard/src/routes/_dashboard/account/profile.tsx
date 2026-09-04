@@ -182,7 +182,7 @@ function ProfilePage() {
 				</p>
 			</div>
 
-			<div className="rounded-2xl border border-white/10 bg-white/[0.02]">
+			<div className="rounded-2xl border border-white/10 bg-white/2">
 				{/* Profile header */}
 				<div className="border-b border-white/8 px-6 py-6">
 					<div className="flex items-center gap-4">
@@ -358,7 +358,7 @@ function ProfilePage() {
 					</div>
 
 					{/* Save bar */}
-					<div className="flex items-center justify-between gap-6 border-t border-white/8 bg-white/[0.015] px-6 py-4">
+					<div className="flex items-center justify-between gap-6 border-t border-white/8 bg-white/1.5 px-6 py-4">
 						<p className="text-xs text-zinc-600">
 							{isDirty
 								? "You have unsaved changes."

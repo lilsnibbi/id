@@ -163,13 +163,13 @@ function PasskeysPage() {
 			</div>
 
 			{passkeys.length === 0 ? (
-				<div className="rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-6">
+				<div className="rounded-2xl border border-white/10 bg-white/2 px-6 py-6">
 					<p className="text-sm text-zinc-500">
 						You have not registered any passkeys.
 					</p>
 				</div>
 			) : (
-				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
 					<div className="border-b border-white/8 px-6 py-5">
 						<h2 className="text-sm font-medium text-white">
 							Your passkeys

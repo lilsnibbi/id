@@ -73,7 +73,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 							<button
 								type="button"
 								onClick={() => toggleGroup(item.to)}
-								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/[0.03] hover:text-zinc-200"
+								className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/3 hover:text-zinc-200"
 							>
 								<span>{item.label}</span>
 
@@ -96,7 +96,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 							</button>
 
 							{!isCollapsed && (
-								<div className="ml-3 mt-1 space-y-0.5 border-l border-white/[0.06] pl-3">
+								<div className="ml-3 mt-1 space-y-0.5 border-l border-white/6 pl-3">
 									{item.children.map((child) => (
 										<Link
 											key={child.to}
