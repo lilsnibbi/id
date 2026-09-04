@@ -9,3 +9,35 @@
 	overflow: hidden;
 	background: #0f0f11;
 }
+
+@keyframes toast-enter {
+	from {
+		opacity: 0;
+		transform: translateY(-24px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes toast-exit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-24px);
+	}
+}
+
+.toast-enter {
+	animation: toast-enter 220ms ease-out both;
+}
+
+.toast-exit {
+	animation: toast-exit 180ms ease-in both;
+}

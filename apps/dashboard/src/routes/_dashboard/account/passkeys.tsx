@@ -79,7 +79,14 @@ function PasskeysPage() {
 
 			toast.success("Passkey registered.");
 		} catch (error) {
-			if (error instanceof Error && error.name === "NotAllowedError") {
+			if (
+				error instanceof Error &&
+				(error.name === "NotAllowedError" ||
+					error.message.toLowerCase().includes("not allowed"))
+			) {
+				setRegisterModalOpen(false);
+				setPasskeyName("");
+				toast.error("Passkey registration was cancelled.");
 				return;
 			}
 

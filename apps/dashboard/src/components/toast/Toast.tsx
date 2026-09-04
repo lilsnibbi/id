@@ -1,3 +1,4 @@
+import { Check, Info, TriangleAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
@@ -6,13 +7,14 @@ interface ToastProps {
 	type: ToastType;
 	message: string;
 	onClose: () => void;
+	closing?: boolean;
 }
 
 const icons: Record<ToastType, ReactNode> = {
-	success: "✓",
-	error: "×",
-	info: "i",
-	warning: "!",
+	success: <Check size={14} strokeWidth={2.5} />,
+	error: <X size={14} strokeWidth={2.5} />,
+	info: <Info size={14} strokeWidth={2.5} />,
+	warning: <TriangleAlert size={14} strokeWidth={2.5} />,
 };
 
 const colors: Record<ToastType, string> = {
@@ -29,22 +31,20 @@ const iconColors: Record<ToastType, string> = {
 	warning: "border-yellow-500/40 text-yellow-400",
 };
 
-export default function Toast({ type, message, onClose }: ToastProps) {
+export default function Toast({
+	type,
+	message,
+	onClose,
+	closing = false,
+}: ToastProps) {
 	return (
 		<div
-			className={`
-                flex w-full max-w-sm items-start gap-3 rounded-xl
-                border-2 bg-zinc-950 px-4 py-3 text-white
-                shadow-2xl shadow-black/40
-                ${colors[type]}
-            `}
+			className={`flex w-full max-w-sm items-start gap-3 rounded-xl border-2 bg-zinc-950 px-4 py-3 text-white shadow-2xl shadow-black/40 ${colors[type]} ${
+				closing ? "toast-exit" : "toast-enter"
+			}`}
 		>
 			<div
-				className={`
-                    flex h-6 w-6 shrink-0 items-center justify-center
-                    rounded-full border text-xs font-bold
-                    ${iconColors[type]}
-                `}
+				className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${iconColors[type]}`}
 			>
 				{icons[type]}
 			</div>
@@ -57,7 +57,7 @@ export default function Toast({ type, message, onClose }: ToastProps) {
 				className="text-zinc-600 transition hover:text-white"
 				aria-label="Close notification"
 			>
-				×
+				<X size={16} strokeWidth={2} />
 			</button>
 		</div>
 	);

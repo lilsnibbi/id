@@ -17,6 +17,7 @@ export default function ToastContainer({
 					<Toast
 						type={toast.type}
 						message={toast.message}
+						closing={toast.closing}
 						onClose={() => onRemove(toast.id)}
 					/>
 				</div>
