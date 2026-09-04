@@ -1,9 +1,41 @@
 import type { ButtonHTMLAttributes } from "react";
 
+/**
+ * Props for the {@link Button} component.
+ *
+ * Extends the native HTML button attributes.
+ */
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+	/**
+	 * Visual style of the button.
+	 *
+	 * @default "primary"
+	 */
 	variant?: "primary" | "secondary" | "danger" | "ghost";
 }
 
+/**
+ * A reusable button component with predefined visual variants.
+ *
+ * Supports all standard HTML button attributes, which are passed through
+ * to the underlying `<button>` element.
+ *
+ * @param props - Button properties and native HTML button attributes.
+ * @returns A styled HTML button element.
+ *
+ * @example
+ * <Button>Save changes</Button>
+ *
+ * @example
+ * <Button variant="danger" onClick={handleDelete}>
+ *     Delete
+ * </Button>
+ *
+ * @example
+ * <Button variant="ghost" disabled>
+ *     Cancel
+ * </Button>
+ */
 export default function Button({
 	variant = "primary",
 	className = "",
