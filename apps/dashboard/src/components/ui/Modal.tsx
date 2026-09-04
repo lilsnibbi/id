@@ -106,10 +106,7 @@ export default function Modal({
                 "
 			>
 				<div className="mb-7">
-					<h2
-						id="modal-title"
-						className="text-xl font-semibold tracking-tight"
-					>
+					<h2 id="modal-title" className="text-xl font-semibold tracking-tight">
 						{title}
 					</h2>
 

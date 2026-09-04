@@ -32,9 +32,7 @@ function PasskeysPage() {
 	const [loading, setLoading] = useState(true);
 	const [registering, setRegistering] = useState(false);
 	const [deleting, setDeleting] = useState<string | null>(null);
-	const [passkeyToDelete, setPasskeyToDelete] = useState<Passkey | null>(
-		null,
-	);
+	const [passkeyToDelete, setPasskeyToDelete] = useState<Passkey | null>(null);
 	const [registerModalOpen, setRegisterModalOpen] = useState(false);
 	const [passkeyName, setPasskeyName] = useState("");
 
@@ -44,9 +42,7 @@ function PasskeysPage() {
 			setPasskeys(response.passkeys);
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Unable to load passkeys.",
+				error instanceof Error ? error.message : "Unable to load passkeys.",
 			);
 		} finally {
 			setLoading(false);
@@ -91,9 +87,7 @@ function PasskeysPage() {
 			}
 
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Unable to register passkey.",
+				error instanceof Error ? error.message : "Unable to register passkey.",
 			);
 		} finally {
 			setRegistering(false);
@@ -112,18 +106,14 @@ function PasskeysPage() {
 		try {
 			await deletePasskey(id);
 
-			setPasskeys((current) =>
-				current.filter((passkey) => passkey.id !== id),
-			);
+			setPasskeys((current) => current.filter((passkey) => passkey.id !== id));
 
 			setPasskeyToDelete(null);
 
 			toast.success("Passkey removed.");
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Unable to remove passkey.",
+				error instanceof Error ? error.message : "Unable to remove passkey.",
 			);
 		} finally {
 			setDeleting(null);
@@ -147,8 +137,7 @@ function PasskeysPage() {
 					</h1>
 
 					<p className="mt-2 text-sm leading-6 text-zinc-500">
-						Manage the passkeys you use to sign in to your Maze ID
-						account.
+						Manage the passkeys you use to sign in to your Maze ID account.
 					</p>
 				</div>
 
@@ -171,13 +160,10 @@ function PasskeysPage() {
 			) : (
 				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/2">
 					<div className="border-b border-white/8 px-6 py-5">
-						<h2 className="text-sm font-medium text-white">
-							Your passkeys
-						</h2>
+						<h2 className="text-sm font-medium text-white">Your passkeys</h2>
 
 						<p className="mt-1 text-sm text-zinc-500">
-							Use a passkey for fast and secure sign-in without a
-							password.
+							Use a passkey for fast and secure sign-in without a password.
 						</p>
 					</div>
 
@@ -199,9 +185,7 @@ function PasskeysPage() {
 										type="button"
 										variant="danger"
 										disabled={deleting === passkey.id}
-										onClick={() =>
-											setPasskeyToDelete(passkey)
-										}
+										onClick={() => setPasskeyToDelete(passkey)}
 										className="shrink-0"
 									>
 										Remove
@@ -215,13 +199,14 @@ function PasskeysPage() {
 										</p>
 
 										<p className="mt-2 text-sm text-zinc-400">
-											{new Date(
-												passkey.createdAt,
-											).toLocaleDateString(undefined, {
-												month: "long",
-												day: "numeric",
-												year: "numeric",
-											})}
+											{new Date(passkey.createdAt).toLocaleDateString(
+												undefined,
+												{
+													month: "long",
+													day: "numeric",
+													year: "numeric",
+												},
+											)}
 										</p>
 									</div>
 
@@ -232,9 +217,7 @@ function PasskeysPage() {
 
 										<p className="mt-2 text-sm text-zinc-400">
 											{passkey.lastUsedAt
-												? new Date(
-														passkey.lastUsedAt,
-													).toLocaleDateString(
+												? new Date(passkey.lastUsedAt).toLocaleDateString(
 														undefined,
 														{
 															month: "long",
@@ -284,9 +267,7 @@ function PasskeysPage() {
 							type="text"
 							placeholder="e.g. MacBook Pro"
 							value={passkeyName}
-							onChange={(event) =>
-								setPasskeyName(event.target.value)
-							}
+							onChange={(event) => setPasskeyName(event.target.value)}
 							maxLength={100}
 							autoFocus
 							disabled={registering}

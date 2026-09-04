@@ -32,9 +32,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 
 			<nav className="flex-1 space-y-1 px-3">
 				{items.map((item) => {
-					const children = item.children.filter(
-						(child) => !child.hidden,
-					);
+					const children = item.children.filter((child) => !child.hidden);
 					const hasChildren = children.length > 0;
 					const isCollapsed = collapsed[item.to] ?? false;
 
@@ -47,8 +45,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 									exact: true,
 								}}
 								activeProps={{
-									className:
-										"bg-violet-500/[0.08] text-zinc-100",
+									className: "bg-violet-500/[0.08] text-zinc-100",
 								}}
 								inactiveProps={{
 									className:
@@ -60,9 +57,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 									<>
 										<span
 											className={`mr-2 h-1.5 w-1.5 rounded-full transition-opacity ${
-												isActive
-													? "bg-violet-400 opacity-100"
-													: "opacity-0"
+												isActive ? "bg-violet-400 opacity-100" : "opacity-0"
 											}`}
 										/>
 										{item.label}
@@ -109,8 +104,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 												exact: true,
 											}}
 											activeProps={{
-												className:
-													"bg-violet-500/[0.08] text-zinc-200",
+												className: "bg-violet-500/[0.08] text-zinc-200",
 											}}
 											inactiveProps={{
 												className:

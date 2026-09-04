@@ -11,11 +11,7 @@ export default function Header() {
 					{user?.email}
 				</span>
 
-				<Button
-					type="button"
-					variant="danger"
-					onClick={() => void logout()}
-				>
+				<Button type="button" variant="danger" onClick={() => void logout()}>
 					Log out
 				</Button>
 			</div>

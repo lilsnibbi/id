@@ -55,9 +55,7 @@ function AuthorizedAppsPage() {
 			toast.success("App access revoked.");
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: "Unable to revoke app access.",
+				error instanceof Error ? error.message : "Unable to revoke app access.",
 			);
 		} finally {
 			setRevoking(null);
@@ -80,8 +78,7 @@ function AuthorizedAppsPage() {
 				</h1>
 
 				<p className="mt-2 text-sm leading-6 text-zinc-500">
-					Manage applications that have access to your Maze ID
-					account.
+					Manage applications that have access to your Maze ID account.
 				</p>
 			</div>
 
@@ -99,8 +96,8 @@ function AuthorizedAppsPage() {
 						</h2>
 
 						<p className="mt-1 text-sm text-zinc-500">
-							These applications can access your account with the
-							permissions shown below.
+							These applications can access your account with the permissions
+							shown below.
 						</p>
 					</div>
 
@@ -122,14 +119,10 @@ function AuthorizedAppsPage() {
 										type="button"
 										variant="danger"
 										disabled={revoking === grant.clientId}
-										onClick={() =>
-											void handleRevoke(grant.clientId)
-										}
+										onClick={() => void handleRevoke(grant.clientId)}
 										className="shrink-0"
 									>
-										{revoking === grant.clientId
-											? "Revoking..."
-											: "Revoke"}
+										{revoking === grant.clientId ? "Revoking..." : "Revoke"}
 									</Button>
 								</div>
 
@@ -152,9 +145,7 @@ function AuthorizedAppsPage() {
 
 								<p className="mt-5 text-xs text-zinc-600">
 									Authorized{" "}
-									{new Date(
-										grant.grantedAt,
-									).toLocaleDateString(undefined, {
+									{new Date(grant.grantedAt).toLocaleDateString(undefined, {
 										month: "long",
 										day: "numeric",
 										year: "numeric",

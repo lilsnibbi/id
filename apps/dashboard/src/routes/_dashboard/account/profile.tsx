@@ -143,9 +143,7 @@ function ProfilePage() {
 	}
 
 	async function handleSubmit(
-		event: Parameters<
-			NonNullable<React.ComponentProps<"form">["onSubmit"]>
-		>[0],
+		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
 	) {
 		event.preventDefault();
 
@@ -216,18 +214,14 @@ function ProfilePage() {
 									onClick={openFilePicker}
 									disabled={avatarSaving}
 								>
-									{avatarSaving
-										? "Uploading..."
-										: "Change photo"}
+									{avatarSaving ? "Uploading..." : "Change photo"}
 								</Button>
 
 								{user.profileImageKey && (
 									<Button
 										type="button"
 										variant="ghost"
-										onClick={() =>
-											void handleRemoveAvatar()
-										}
+										onClick={() => void handleRemoveAvatar()}
 										disabled={avatarSaving}
 									>
 										Remove
@@ -259,8 +253,7 @@ function ProfilePage() {
 							</h2>
 
 							<p className="mt-1 text-sm leading-6 text-zinc-500">
-								Update the information associated with your
-								account.
+								Update the information associated with your account.
 							</p>
 						</div>
 
@@ -276,9 +269,7 @@ function ProfilePage() {
 								<Input
 									id="display-name"
 									value={displayName}
-									onChange={(event) =>
-										setDisplayName(event.target.value)
-									}
+									onChange={(event) => setDisplayName(event.target.value)}
 									placeholder="Your name"
 									autoComplete="name"
 									maxLength={100}
@@ -286,10 +277,7 @@ function ProfilePage() {
 								/>
 
 								<div className="mt-2 flex justify-between text-xs text-zinc-600">
-									<span>
-										This name will be shown throughout Maze
-										ID.
-									</span>
+									<span>This name will be shown throughout Maze ID.</span>
 
 									<span>{displayName.length}/100</span>
 								</div>
@@ -303,19 +291,12 @@ function ProfilePage() {
 									Email address
 								</label>
 
-								<Input
-									id="email"
-									value={user.email}
-									disabled
-									readOnly
-								/>
+								<Input id="email" value={user.email} disabled readOnly />
 
 								<div className="mt-2 flex items-center gap-2 text-xs">
 									<span
 										className={`h-1.5 w-1.5 rounded-full ${
-											user.emailVerifiedAt
-												? "bg-emerald-400"
-												: "bg-amber-400"
+											user.emailVerifiedAt ? "bg-emerald-400" : "bg-amber-400"
 										}`}
 									/>
 
@@ -333,15 +314,11 @@ function ProfilePage() {
 					<div className="border-t border-white/8 px-6 py-6">
 						<div className="flex items-center justify-between gap-6">
 							<div>
-								<h2 className="text-sm font-medium text-white">
-									Account
-								</h2>
+								<h2 className="text-sm font-medium text-white">Account</h2>
 
 								<p className="mt-1 text-sm text-zinc-500">
 									Created on{" "}
-									{new Date(
-										user.createdAt,
-									).toLocaleDateString(undefined, {
+									{new Date(user.createdAt).toLocaleDateString(undefined, {
 										month: "long",
 										day: "numeric",
 										year: "numeric",

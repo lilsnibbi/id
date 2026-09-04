@@ -126,13 +126,9 @@ async function hashPasswordPbkdf2(password: string): Promise<string> {
 
 	const hash = await derivePasswordHash(password, salt, ITERATIONS);
 
-	return [
-		"pbkdf2",
-		"sha256",
-		ITERATIONS,
-		toBase64(salt),
-		toBase64(hash),
-	].join("$");
+	return ["pbkdf2", "sha256", ITERATIONS, toBase64(salt), toBase64(hash)].join(
+		"$",
+	);
 }
 
 /**

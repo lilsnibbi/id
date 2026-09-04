@@ -37,9 +37,7 @@ function RegisterPage() {
 	const canSubmit = emailValid && passwordValid && passwordsMatch && !loading;
 
 	async function handleSubmit(
-		event: Parameters<
-			NonNullable<React.ComponentProps<"form">["onSubmit"]>
-		>[0],
+		event: Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0],
 	) {
 		event.preventDefault();
 
@@ -126,9 +124,7 @@ function RegisterPage() {
 							id="password"
 							type="password"
 							value={password}
-							onChange={(event) =>
-								setPassword(event.target.value)
-							}
+							onChange={(event) => setPassword(event.target.value)}
 							placeholder="Create a password"
 							autoComplete="new-password"
 							disabled={loading}
@@ -162,9 +158,7 @@ function RegisterPage() {
 							id="confirm-password"
 							type="password"
 							value={confirmPassword}
-							onChange={(event) =>
-								setConfirmPassword(event.target.value)
-							}
+							onChange={(event) => setConfirmPassword(event.target.value)}
 							placeholder="Enter your password again"
 							autoComplete="new-password"
 							disabled={loading}
@@ -174,9 +168,7 @@ function RegisterPage() {
 						{confirmPassword.length > 0 && (
 							<p
 								className={`mt-2 text-xs ${
-									passwordsMatch
-										? "text-emerald-400"
-										: "text-red-400"
+									passwordsMatch ? "text-emerald-400" : "text-red-400"
 								}`}
 							>
 								{passwordsMatch
@@ -186,11 +178,7 @@ function RegisterPage() {
 						)}
 					</div>
 
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={!canSubmit}
-					>
+					<Button type="submit" className="w-full" disabled={!canSubmit}>
 						Create account
 					</Button>
 				</form>

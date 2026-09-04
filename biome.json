@@ -14,7 +14,8 @@
    "!./biome.json",
    "!apps/api/drizzle",
    "!apps/dashboard/dist",
-   "!apps/dashboard/src/routeTree.gen.ts"
+   "!apps/dashboard/src/routeTree.gen.ts",
+   "!**/.wrangler"
   ]
  },
  "formatter": {

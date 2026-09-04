@@ -235,9 +235,7 @@ export async function runWranglerAndCheck(
 	const exitCode = await process.exited;
 
 	if (exitCode !== 0) {
-		throw new Error(
-			`${errorMessage} Wrangler exited with code ${exitCode}.`,
-		);
+		throw new Error(`${errorMessage} Wrangler exited with code ${exitCode}.`);
 	}
 }
 
@@ -456,16 +454,7 @@ export async function listFlagshipFlags(
 	appId: string,
 ): Promise<FlagshipFlag[]> {
 	const process = Bun.spawn(
-		[
-			"bunx",
-			"wrangler",
-			"flagship",
-			"flags",
-			"list",
-			appId,
-			"--all",
-			"--json",
-		],
+		["bunx", "wrangler", "flagship", "flags", "list", appId, "--all", "--json"],
 		{
 			cwd: API_DIR,
 			stdout: "pipe",

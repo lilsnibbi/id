@@ -98,9 +98,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="current-password"
 									value={currentPassword}
-									onChange={(event) =>
-										setCurrentPassword(event.target.value)
-									}
+									onChange={(event) => setCurrentPassword(event.target.value)}
 									disabled={saving}
 								/>
 							</div>
@@ -117,9 +115,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="new-password"
 									value={newPassword}
-									onChange={(event) =>
-										setNewPassword(event.target.value)
-									}
+									onChange={(event) => setNewPassword(event.target.value)}
 									disabled={saving}
 								/>
 								<p className="mt-2 text-xs text-zinc-600">
@@ -139,9 +135,7 @@ function ChangePasswordPage() {
 									type="password"
 									autoComplete="new-password"
 									value={confirmPassword}
-									onChange={(event) =>
-										setConfirmPassword(event.target.value)
-									}
+									onChange={(event) => setConfirmPassword(event.target.value)}
 									disabled={saving}
 								/>
 
@@ -151,14 +145,11 @@ function ChangePasswordPage() {
 									</p>
 								)}
 
-								{newPassword &&
-									currentPassword &&
-									!passwordIsDifferent && (
-										<p className="mt-2 text-xs text-red-400">
-											New password must be different from
-											your current password.
-										</p>
-									)}
+								{newPassword && currentPassword && !passwordIsDifferent && (
+									<p className="mt-2 text-xs text-red-400">
+										New password must be different from your current password.
+									</p>
+								)}
 							</div>
 						</div>
 					</div>

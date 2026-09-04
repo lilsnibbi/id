@@ -54,10 +54,7 @@ if (bucket) {
 		console.log();
 		console.log("Generating Wrangler types...");
 
-		await runWranglerAndCheck(
-			["types"],
-			"Failed to generate Wrangler types.",
-		);
+		await runWranglerAndCheck(["types"], "Failed to generate Wrangler types.");
 
 		console.log("Wrangler types generated.");
 
