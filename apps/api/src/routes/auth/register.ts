@@ -53,12 +53,7 @@ register.post("/", async (c) => {
 	const now = Date.now();
 	const userId = crypto.randomUUID();
 
-	const useArgon2id = await c.env.FLAGS.getBooleanValue(
-		"use-argon-2-id",
-		false,
-	);
-
-	const passwordHash = await hashPassword(password, useArgon2id);
+	const passwordHash = await hashPassword(password);
 
 	await db.insert(users).values({
 		id: userId,
