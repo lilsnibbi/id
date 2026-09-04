@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { getOAuthClientDetails, api } from "@/lib/api";
+import Button from "@/components/ui/Button";
 
 export interface AuthorizeSearch {
 	client_id?: string;
@@ -49,18 +50,12 @@ export const Route = createFileRoute("/authorize")({
 function AuthorizePage() {
 	const search = Route.useSearch();
 
-	console.log("AUTHORIZE SEARCH:", window.location.search);
-	console.log(
-		"AUTHORIZE PARAMS:",
-		Object.fromEntries(new URLSearchParams(window.location.search)),
-	);
-
 	const [loading, setLoading] = useState(false);
 	const [loadingClient, setLoadingClient] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [client, setClient] = useState<OAuthClientDetails | null>(null);
 
-	const scopes: string[] = search.scope?.split(" ").filter(Boolean) ?? [];
+	const scopes = search.scope?.split(" ").filter(Boolean) ?? [];
 
 	const missing =
 		!search.client_id ||
@@ -95,7 +90,6 @@ function AuthorizePage() {
 		}
 
 		const url = new URL(search.redirect_uri);
-
 		url.searchParams.set("error", "access_denied");
 
 		if (search.state) {
@@ -146,12 +140,12 @@ function AuthorizePage() {
 	if (missing) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-				<div className="w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-900 p-6 text-center">
-					<h1 className="text-lg font-semibold text-white">
+				<div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+					<h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">
 						Invalid authorization request
 					</h1>
 
-					<p className="mt-2 text-sm text-zinc-500">
+					<p className="mt-2 text-sm leading-6 text-zinc-500">
 						The authorization request is missing required
 						parameters.
 					</p>
@@ -161,63 +155,91 @@ function AuthorizePage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-			<div className="w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-				<div className="text-center">
+		<div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
+			<div className="w-full max-w-2xl">
+				<div className="mb-8 text-center">
 					<p className="text-sm font-medium text-zinc-500">Maze ID</p>
 
-					<h1 className="mt-3 text-xl font-semibold text-white">
-						{loadingClient
-							? "Loading application..."
-							: (client?.name ?? "Unknown application")}
+					<h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">
+						Authorize application
 					</h1>
 
-					<p className="mt-2 text-sm text-zinc-400">
-						wants to access your Maze ID account.
+					<p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
+						Review the permissions requested by this application
+						before continuing.
 					</p>
 				</div>
 
-				<div className="mt-6">
-					<p className="text-sm font-medium text-zinc-300">
-						Requested permissions
-					</p>
+				<div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+					<div className="border-b border-white/8 px-6 py-6">
+						<p className="text-xs font-medium uppercase tracking-wide text-zinc-600">
+							Application
+						</p>
 
-					<div className="mt-3 space-y-2">
-						{scopes.map((scope) => (
-							<div
-								key={scope}
-								className="rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400"
-							>
-								{scope}
+						<h2 className="mt-2 text-lg font-medium text-white">
+							{loadingClient
+								? "Loading application..."
+								: (client?.name ?? "Unknown application")}
+						</h2>
+
+						<p className="mt-1 text-sm text-zinc-500">
+							wants to access your Maze ID account.
+						</p>
+
+						{client?.client_id && (
+							<p className="mt-3 break-all font-mono text-xs text-zinc-600">
+								{client.client_id}
+							</p>
+						)}
+					</div>
+
+					<div className="px-6 py-6">
+						<p className="text-sm font-medium text-white">
+							Requested permissions
+						</p>
+
+						<p className="mt-1 text-sm text-zinc-500">
+							This application is requesting access to the
+							following permissions.
+						</p>
+
+						<div className="mt-4 space-y-2">
+							{scopes.map((scope) => (
+								<div
+									key={scope}
+									className="flex items-center rounded-xl border border-violet-400/10 bg-violet-400/[0.06] px-3.5 py-3 text-sm font-medium text-violet-300"
+								>
+									{scope}
+								</div>
+							))}
+						</div>
+
+						{error && (
+							<div className="mt-5 rounded-xl border border-red-400/15 bg-red-400/[0.06] px-4 py-3 text-sm leading-6 text-red-300">
+								{error}
 							</div>
-						))}
+						)}
 					</div>
-				</div>
 
-				{error && (
-					<div className="mt-5 rounded-md border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">
-						{error}
+					<div className="flex flex-col-reverse gap-3 border-t border-white/8 bg-white/[0.015] px-6 py-5 sm:flex-row sm:justify-end">
+						<Button
+							type="button"
+							variant="secondary"
+							disabled={loading}
+							onClick={handleDeny}
+						>
+							Deny
+						</Button>
+
+						<Button
+							type="button"
+							variant="primary"
+							disabled={loading || loadingClient || !client}
+							onClick={() => void handleApprove()}
+						>
+							{loading ? "Authorizing..." : "Authorize"}
+						</Button>
 					</div>
-				)}
-
-				<div className="mt-6 grid grid-cols-2 gap-3">
-					<button
-						type="button"
-						onClick={handleDeny}
-						disabled={loading}
-						className="rounded-md border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
-					>
-						Deny
-					</button>
-
-					<button
-						type="button"
-						onClick={() => void handleApprove()}
-						disabled={loading || loadingClient || !client}
-						className="rounded-md bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-					>
-						{loading ? "Authorizing..." : "Authorize"}
-					</button>
 				</div>
 			</div>
 		</div>
