@@ -90,12 +90,7 @@ password.post("/", requireAuth, async (c) => {
 		);
 	}
 
-	const useArgon2id = await c.env.FLAGS.getBooleanValue(
-		"use-argon-2-id",
-		false,
-	);
-
-	const passwordHash = await hashPassword(newPassword, useArgon2id);
+	const passwordHash = await hashPassword(newPassword);
 
 	await db
 		.update(users)

@@ -1,0 +1,5 @@
+import * as Cloudflare from "alchemy/Cloudflare";
+
+export const Lifecycle = Cloudflare.Workflow("Lifecycle", {
+	className: "LifecycleWorkflow",
+});

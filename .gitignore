@@ -3,3 +3,4 @@ node_modules/
 tsconfig.*tsbuildinfo
 wrangler.jsonc
 generated.json
+.alchemy
