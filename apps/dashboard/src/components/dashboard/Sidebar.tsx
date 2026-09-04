@@ -9,7 +9,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isAdmin }: SidebarProps) {
-	const items = getNavigationItems(routeTree, isAdmin);
+	const items = getNavigationItems(routeTree, isAdmin).filter(
+		(item) => !item.hidden,
+	);
 
 	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -30,7 +32,10 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 
 			<nav className="flex-1 space-y-1 px-3">
 				{items.map((item) => {
-					const hasChildren = item.children.length > 0;
+					const children = item.children.filter(
+						(child) => !child.hidden,
+					);
+					const hasChildren = children.length > 0;
 					const isCollapsed = collapsed[item.to] ?? false;
 
 					if (!hasChildren) {
@@ -60,7 +65,6 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 													: "opacity-0"
 											}`}
 										/>
-
 										{item.label}
 									</>
 								)}
@@ -97,7 +101,7 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 
 							{!isCollapsed && (
 								<div className="ml-3 mt-1 space-y-0.5 border-l border-white/6 pl-3">
-									{item.children.map((child) => (
+									{children.map((child) => (
 										<Link
 											key={child.to}
 											to={child.to}
@@ -123,7 +127,6 @@ export default function Sidebar({ isAdmin }: SidebarProps) {
 																: "opacity-0"
 														}`}
 													/>
-
 													{child.label}
 												</div>
 											)}

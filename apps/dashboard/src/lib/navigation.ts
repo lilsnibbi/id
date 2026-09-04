@@ -11,6 +11,7 @@ export interface NavigationData {
 	label: string;
 	order: number;
 	adminOnly?: boolean;
+	hidden?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export interface NavigationItem {
 	to: string;
 	order: number;
 	adminOnly?: boolean;
+	hidden?: boolean;
 }
 
 /**
@@ -76,11 +78,16 @@ function collectChildren(route: AnyRoute, isAdmin: boolean): NavigationItem[] {
 			continue;
 		}
 
+		if (navigation.hidden) {
+			continue;
+		}
+
 		items.push({
 			label: navigation.label,
 			to: child.fullPath,
 			order: navigation.order,
 			adminOnly: navigation.adminOnly,
+			hidden: navigation.hidden,
 		});
 	}
 
@@ -107,6 +114,10 @@ function collectNavigation(
 	const navigation = getNavigation(route);
 
 	if (navigation) {
+		if (navigation.hidden) {
+			return items;
+		}
+
 		if (navigation.adminOnly && !isAdmin) {
 			return items;
 		}
@@ -116,6 +127,7 @@ function collectNavigation(
 			to: route.fullPath,
 			order: navigation.order,
 			adminOnly: navigation.adminOnly,
+			hidden: navigation.hidden,
 			children: collectChildren(route, isAdmin),
 		});
 
