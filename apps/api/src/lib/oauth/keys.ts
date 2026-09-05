@@ -33,9 +33,7 @@ export async function importPrivateKey(privateKey: string) {
  * @returns The imported public verification key.
  */
 export async function importPublicKey(publicKey: JsonWebKey) {
-	return crypto.subtle.importKey("jwk", publicKey, ALGORITHM, true, [
-		"verify",
-	]);
+	return crypto.subtle.importKey("jwk", publicKey, ALGORITHM, true, ["verify"]);
 }
 
 /**
