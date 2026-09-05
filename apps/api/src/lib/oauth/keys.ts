@@ -33,7 +33,9 @@ export async function importPrivateKey(privateKey: string) {
  * @returns The imported public verification key.
  */
 export async function importPublicKey(publicKey: JsonWebKey) {
-	return crypto.subtle.importKey("jwk", publicKey, ALGORITHM, true, ["verify"]);
+	return crypto.subtle.importKey("jwk", publicKey, ALGORITHM, true, [
+		"verify",
+	]);
 }
 
 /**
@@ -100,7 +102,10 @@ export function getPublicJwk(privateKey: string) {
  * @returns The generated ECDSA signature.
  */
 export async function sign(key: CryptoKey, data: Uint8Array) {
-	return crypto.subtle.sign(SIGN_ALGORITHM, key, data);
+	const buffer = new ArrayBuffer(data.byteLength);
+	new Uint8Array(buffer).set(data);
+
+	return crypto.subtle.sign(SIGN_ALGORITHM, key, buffer);
 }
 
 /**
