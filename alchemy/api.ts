@@ -5,6 +5,7 @@ import { Database } from "./database";
 import { ProfileBucket } from "./storage";
 
 const ApiUrl = Config.string("VITE_API_URL");
+const DashboardDomain = Config.string("DASHBOARD_DOMAIN");
 
 export const Api = Cloudflare.Worker("Api", {
 	name: Config.string("INSTANCE_NAME").pipe(
@@ -38,13 +39,10 @@ export const Api = Cloudflare.Worker("Api", {
 		}),
 
 		INSTANCE_NAME: Config.string("INSTANCE_NAME"),
-
-		DASHBOARD_DOMAIN: ApiUrl.pipe(
-			Config.map((url) => new URL(url).hostname),
-		),
+		DASHBOARD_DOMAIN: DashboardDomain,
 
 		RP_NAME: "Maze ID",
-		RP_ID: ApiUrl.pipe(Config.map((url) => new URL(url).hostname)),
+		RP_ID: DashboardDomain,
 		ORIGIN: ApiUrl,
 		OIDC_ISSUER: Config.string("OIDC_ISSUER"),
 		LOCALHOST: Config.boolean("LOCALHOST"),
