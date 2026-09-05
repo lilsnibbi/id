@@ -8,8 +8,8 @@ import { passkeys, users } from "../../db/schema";
 import { setSessionCookie } from "../../lib/cookie";
 import {
 	base64ToUint8Array,
-	consumeChallenge,
-	getChallenge,
+	consumeChallengeById,
+	getChallengeById,
 } from "../../lib/passkey";
 import { createSession } from "../../lib/session";
 
@@ -40,7 +40,7 @@ loginVerify.post("/verify", async (c) => {
 
 	const db = createDb(c.env.DB);
 
-	const challenge = await getChallenge(db, body.challengeId);
+	const challenge = await getChallengeById(db, body.challengeId);
 
 	if (!challenge) {
 		return c.json(
@@ -86,11 +86,14 @@ loginVerify.post("/verify", async (c) => {
 	}
 
 	try {
+		const expectedOrigin = `${c.env.LOCALHOST ? "http" : "https"}://${c.env.DASHBOARD_DOMAIN}`;
+		const expectedRPID = c.env.RP_ID;
+
 		const verification = await verifyAuthenticationResponse({
 			response: body.response,
 			expectedChallenge: challenge.challenge,
-			expectedOrigin: c.env.ORIGIN,
-			expectedRPID: c.env.RP_ID,
+			expectedOrigin,
+			expectedRPID,
 			credential: {
 				id: passkey.credentialId,
 				publicKey: base64ToUint8Array(passkey.publicKey),
@@ -118,7 +121,7 @@ loginVerify.post("/verify", async (c) => {
 			})
 			.where(eq(passkeys.id, passkey.id));
 
-		await consumeChallenge(db, body.challengeId);
+		await consumeChallengeById(db, body.challengeId);
 
 		const cf = c.req.raw.cf as CloudflareRequestProperties | undefined;
 
