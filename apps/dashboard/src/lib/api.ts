@@ -25,7 +25,7 @@ export async function api<T>(
 	});
 
 	if (!response.ok) {
-		throw new Error(data?.error ?? "Something went wrong. Please try again.");
+		throw new Error(response.error ?? "Something went wrong");
 	}
 	
 	const data = await response.json().catch(() => null);
