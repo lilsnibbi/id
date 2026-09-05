@@ -1,13 +1,5 @@
 {
- "files": [],
- "references": [
-  {
-   "path": "./apps/api"
-  },
-  {
-   "path": "./apps/dashboard"
-  }
- ],
+ "include": ["./alchemy"],
  "compilerOptions": {
   "types": ["bun"],
   "target": "ESNext",

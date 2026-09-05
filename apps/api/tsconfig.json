@@ -3,9 +3,7 @@
  "compilerOptions": {
   "lib": ["ESNext"],
   "types": ["bun", "@cloudflare/workers-types"],
-  "composite": true,
-  "declaration": true,
   "noEmit": true
  },
- "include": ["./src", "./worker-configuration.d.ts", "./drizzle.config.ts"]
+ "include": ["./src", "../../alchemy/**/*.ts", "./drizzle.config.ts"]
 }

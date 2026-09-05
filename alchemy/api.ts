@@ -1,8 +1,10 @@
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Config from "effect/Config";
 
-import { Database } from "./database.ts";
-import { ProfileBucket } from "./storage.ts";
+import { Database } from "./database";
+import { ProfileBucket } from "./storage";
+
+const ApiUrl = Config.string("VITE_API_URL");
 
 export const Api = Cloudflare.Worker("Api", {
 	name: Config.string("INSTANCE_NAME").pipe(
@@ -10,6 +12,10 @@ export const Api = Cloudflare.Worker("Api", {
 	),
 
 	main: "./apps/api/src/index.ts",
+
+	domain: ApiUrl.pipe(Config.map((url) => new URL(url).hostname)),
+
+	workersDev: false,
 
 	compatibility: {
 		date: "2026-08-31",
@@ -32,15 +38,16 @@ export const Api = Cloudflare.Worker("Api", {
 		}),
 
 		INSTANCE_NAME: Config.string("INSTANCE_NAME"),
-		DASHBOARD_DOMAIN: Config.string("DASHBOARD_DOMAIN"),
-		RP_NAME: "Maze ID",
-		RP_ID: Config.string("DASHBOARD_DOMAIN"),
-		ORIGIN: Config.string("DASHBOARD_DOMAIN").pipe(
-			Config.map((domain) => `https://${domain}`),
+
+		DASHBOARD_DOMAIN: ApiUrl.pipe(
+			Config.map((url) => new URL(url).hostname),
 		),
+
+		RP_NAME: "Maze ID",
+		RP_ID: ApiUrl.pipe(Config.map((url) => new URL(url).hostname)),
+		ORIGIN: ApiUrl,
 		OIDC_ISSUER: Config.string("OIDC_ISSUER"),
 		LOCALHOST: Config.boolean("LOCALHOST"),
-
 		ADMIN_BOOTSTRAP_SECRET: Config.redacted("ADMIN_BOOTSTRAP_SECRET"),
 		OIDC_PRIVATE_KEY: Config.redacted("OIDC_PRIVATE_KEY"),
 	},
