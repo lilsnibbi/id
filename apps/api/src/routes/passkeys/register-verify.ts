@@ -21,7 +21,6 @@ registerVerify.post("/verify", async (c) => {
 	}
 
 	const db = createDb(c.env.DB);
-
 	const user = await getSessionUser(db, token);
 
 	if (!user) {
@@ -47,11 +46,14 @@ registerVerify.post("/verify", async (c) => {
 	const name = body.name?.trim() || null;
 
 	try {
+		const expectedOrigin = `${c.env.LOCALHOST ? "http" : "https"}://${c.env.DASHBOARD_DOMAIN}`;
+		const expectedRPID = c.env.RP_ID;
+
 		const verification = await verifyRegistrationResponse({
 			response: body.response,
 			expectedChallenge: challenge.challenge,
-			expectedOrigin: c.env.ORIGIN,
-			expectedRPID: c.env.RP_ID,
+			expectedOrigin,
+			expectedRPID,
 		});
 
 		if (!verification.verified || !verification.registrationInfo) {
@@ -108,7 +110,9 @@ registerVerify.post("/verify", async (c) => {
 		return c.json({
 			success: true,
 		});
-	} catch {
+	} catch (error) {
+		console.error("[Passkey] Registration verification error:", error);
+
 		return c.json(
 			{
 				error: "Unable to verify passkey registration.",
