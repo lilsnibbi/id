@@ -39,4 +39,4 @@ jobs:
      run: bun run typecheck:dashboard
 
    - name: Format
-     run: bun run format
+     run: bunx biome format .
