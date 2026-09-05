@@ -15,13 +15,15 @@
     "typecheck:dashboard": "bunx tsc -p apps/dashboard/tsconfig.json --noEmit",
     "typecheck:api": "bunx tsc -p apps/api/tsconfig.json --noEmit",
     "plan": "alchemy plan",
-    "deploy": "alchemy deploy"
+    "deploy": "alchemy deploy",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
     "@types/bun": "^1.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
+    "husky": "^9.1.7",
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "typescript": "^7.0.2"
