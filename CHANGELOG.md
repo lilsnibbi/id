@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/thehazell/id/compare/v0.5.0...v0.5.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* **db:** update D1 initialization for Drizzle 1.0 RC ([018f5e3](https://github.com/thehazell/id/commit/018f5e317d1bc4a3cb529665fad7cbefb0b6074d))
+
 ## [0.5.0](https://github.com/thehazell/id/compare/v0.4.4...v0.5.0) (2026-09-04)
 
 
