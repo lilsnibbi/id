@@ -1,0 +1,39 @@
+name: CI
+
+on:
+ push:
+  branches:
+   - main
+ pull_request:
+
+permissions:
+ contents: read
+
+jobs:
+ check:
+  name: Typecheck & Format
+  runs-on: ubuntu-latest
+
+  steps:
+   - name: Checkout
+     uses: actions/checkout@v5
+
+   - name: Setup Bun
+     uses: oven-sh/setup-bun@v2
+     with:
+      bun-version: latest
+
+   - name: Install dependencies
+     run: bun install --frozen-lockfile
+
+   - name: Typecheck
+     run: bun run typecheck
+
+   - name: Typecheck API
+     run: bun run typecheck:api
+
+   - name: Typecheck Dashboard
+     run: bun run typecheck:dashboard
+
+   - name: Format
+     run: bun run format
