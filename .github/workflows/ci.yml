@@ -32,6 +32,9 @@ jobs:
    - name: Typecheck API
      run: bun run typecheck:api
 
+   - name: Build Dashboard to generate routeTree.gen.ts
+     run: bun run build:dashboard
+
    - name: Typecheck Dashboard
      run: bun run typecheck:dashboard
 
