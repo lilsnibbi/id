@@ -1,62 +1,84 @@
+# Maze ID
+
+Maze ID is a self-hosted identity service built as a Cloudflare Workers monorepo.
+
 ## Repository Structure
 
-Maze ID is a monorepo containing the API and dashboard applications:
+```text
+apps/
+├── api/          # API Worker
+└── dashboard/    # Dashboard application
+```
 
-- **API:** `apps/api`
-- **Dashboard:** `apps/dashboard`
+## Requirements
+
+- [Bun](https://bun.sh/)
+- A Cloudflare account
+- A configured `.env` file
 
 ## Setup
 
-1. Copy `.env.example` to `.env`.
-
-2. Fill in all required values in `.env`.
-
-3. Run the setup script:
+Copy the example environment file:
 
 ```bash
-bun run setup
+cp .env.example .env
 ```
 
-This will:
+Fill in the required values in `.env`.
 
-- Generate the Wrangler configuration files.
-- Create or configure the D1 database.
-- Create the Flagship app and add the `FLAGS` binding to the API Wrangler configuration.
-- Create the `use-argon-2-id` feature flag with a default value of `off`.
-- Generate Wrangler types.
+## Infrastructure
 
-4. Deploy:
+Maze ID uses [Alchemy](https://alchemy.run/) to manage its Cloudflare infrastructure.
+
+To preview the infrastructure changes:
+
+```bash
+bun run plan
+```
+
+To deploy:
 
 ```bash
 bun run deploy
 ```
 
-## Experimental: Argon2id
+No additional provisioning or setup commands are required.
 
-Argon2id password hashing is currently experimental.
+## Development
 
-Maze ID supports Argon2id behind a Cloudflare Flagship feature flag. The feature is disabled by default and should be considered experimental until it has been sufficiently tested in production-like environments.
+### API
 
-When the flag is **disabled**, new passwords are hashed using the existing PBKDF2-SHA-256 implementation. When the flag is **enabled**, new passwords are hashed using Argon2id.
+The API application is located at:
 
-### Enable Argon2id
-
-```bash
-bun run argon:on
+```text
+apps/api
 ```
 
-### Disable Argon2id
+### Dashboard
 
-```bash
-bun run argon:off
+The dashboard application is located at:
+
+```text
+apps/dashboard
 ```
 
-The feature flag only controls the algorithm used to hash **new passwords**. Password verification automatically detects the algorithm used by the stored password hash, so disabling the flag does not invalidate passwords that were previously hashed with Argon2id.
+## Deployment
 
-Flag changes may take a short time to propagate through Cloudflare.
+The complete deployment is managed through Alchemy:
 
-The current experimental Argon2id configuration uses:
+```bash
+bun run plan
+bun run deploy
+```
 
-- **Memory:** 64 MiB
-- **Iterations:** 2
-- **Parallelism:** 1
+Alchemy manages the required Cloudflare resources and application bindings for the deployment.
+
+## Environment
+
+Configuration is provided through the root `.env` file.
+
+See `.env.example` for the required environment variables.
+
+## License
+
+See the repository license for details.
